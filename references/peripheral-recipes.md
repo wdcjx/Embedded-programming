@@ -1,0 +1,268 @@
+# 典型外设配方（F103C8T6 + 标准库，其他密度按宏与启动文件调整）
+
+> 每个配方都是「可直接放入 main.c 的片段 + 接线」。生成完整工程时与 templates/main.c 骨架组合。
+
+## 1. LED 闪烁（非阻塞）
+
+接线：PC13 → LED（Pill 板载 LED 低电平点亮）。
+
+```c
+#define LED_PORT  GPIOC
+#define LED_PIN   GPIO_Pin_13
+
+static void led_init(void)
+{
+    GPIO_InitTypeDef gpio;
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC, ENABLE);
+    gpio.GPIO_Pin   = LED_PIN;
+    gpio.GPIO_Mode  = GPIO_Mode_Out_PP;
+    gpio.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_Init(LED_PORT, &gpio);
+    GPIO_SetBits(LED_PORT, LED_PIN);          /* 先灭（低电平亮） */
+}
+
+/* main 循环内（delay_init() 已调用） */
+static uint32_t t0 = 0;
+if (millis() - t0 >= 500) {
+    t0 = millis();
+    LED_PORT->ODR ^= LED_PIN;                 /* 翻转 */
+}
+```
+
+## 2. 按键 EXTI 中断
+
+接线：PA0 → 按键 → GND（内部上拉，按下为低 → 下降沿触发）。
+
+```c
+static void key_init(void)
+{
+    GPIO_InitTypeDef gpio;
+    EXTI_InitTypeDef  exti;
+    NVIC_InitTypeDef  nvic;
+
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_AFIO, ENABLE);
+    gpio.GPIO_Pin  = GPIO_Pin_0;
+    gpio.GPIO_Mode = GPIO_Mode_IPU;           /* 上拉输入 */
+    GPIO_Init(GPIOA, &gpio);
+
+    GPIO_EXTILineConfig(GPIO_PortSourceGPIOA, GPIO_PinSource0);
+    exti.EXTI_Line    = EXTI_Line0;
+    exti.EXTI_Mode    = EXTI_Mode_Interrupt;
+    exti.EXTI_Trigger = EXTI_Trigger_Falling;
+    exti.EXTI_LineCmd = ENABLE;
+    EXTI_Init(&exti);
+
+    nvic.NVIC_IRQChannel                   = EXTI0_IRQn;
+    nvic.NVIC_IRQChannelPreemptionPriority = 2;
+    nvic.NVIC_IRQChannelSubPriority        = 0;
+    nvic.NVIC_IRQChannelCmd                = ENABLE;
+    NVIC_Init(&nvic);
+}
+
+volatile uint8_t key_pressed = 0;
+
+void EXTI0_IRQHandler(void)                   /* 全工程仅此一份 */
+{
+    if (EXTI_GetITStatus(EXTI_Line0) != RESET) {
+        EXTI_ClearITPendingBit(EXTI_Line0);
+        key_pressed = 1;                      /* 只置标志；消抖放主循环做 */
+    }
+}
+```
+
+## 3. 串口 printf + 回显（轮询版）
+
+接线：PA9(TX) → USB转串口 RX；PA10(RX) → TX；共地。115200-8-N-1。
+
+```c
+static void usart1_init(void)
+{
+    GPIO_InitTypeDef gpio;
+    USART_InitTypeDef usart;
+
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_USART1, ENABLE);
+    gpio.GPIO_Pin   = GPIO_Pin_9;             /* TX: 复用推挽 */
+    gpio.GPIO_Mode  = GPIO_Mode_AF_PP;
+    gpio.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_Init(GPIOA, &gpio);
+    gpio.GPIO_Pin   = GPIO_Pin_10;            /* RX: 浮空输入 */
+    gpio.GPIO_Mode  = GPIO_Mode_IN_FLOATING;
+    GPIO_Init(GPIOA, &gpio);
+
+    usart.USART_BaudRate            = 115200;
+    usart.USART_WordLength          = USART_WordLength_8b;
+    usart.USART_StopBits            = USART_StopBits_1;
+    usart.USART_Parity              = USART_Parity_No;
+    usart.USART_Mode                = USART_Mode_Rx | USART_Mode_Tx;
+    usart.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
+    USART_Init(USART1, &usart);
+    USART_Cmd(USART1, ENABLE);
+}
+
+/* 回显（轮询，简单场景；uart_send_byte/uart_recv_byte 见 API 速查 §3） */
+uint8_t ch;
+ch = uart_recv_byte();
+uart_send_byte(ch);
+```
+
+printf 重定向见 stm32-stdperiph-api.md §3。
+
+## 4. 串口不定长帧接收（RXNE + IDLE 空闲中断）
+
+```c
+/* USER CODE BEGIN PV */
+#define RX_BUF_SIZE 128
+static uint8_t  rx_buf[RX_BUF_SIZE];
+static volatile uint16_t rx_len  = 0;
+static volatile uint8_t  rx_done = 0;
+static uint16_t rx_idx = 0;
+/* USER CODE END PV */
+
+/* usart1_init() 末尾追加 */
+USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);
+USART_ITConfig(USART1, USART_IT_IDLE, ENABLE);
+/* NVIC：USART1_IRQn，PreemptionPriority=1 */
+
+void USART1_IRQHandler(void)
+{
+    if (USART_GetITStatus(USART1, USART_IT_RXNE) != RESET) {
+        uint8_t d = (uint8_t)USART_ReceiveData(USART1);   /* 读 DR 清 RXNE */
+        if (rx_idx < RX_BUF_SIZE) rx_buf[rx_idx++] = d;
+    }
+    if (USART_GetITStatus(USART1, USART_IT_IDLE) != RESET) {
+        (void)USART1->SR;                                 /* 先读 SR 再读 DR 清 IDLE */
+        (void)USART1->DR;
+        rx_len  = rx_idx;
+        rx_idx  = 0;
+        rx_done = 1;
+    }
+}
+
+/* 主循环处理 */
+if (rx_done) {
+    rx_done = 0;
+    /* 处理 rx_buf[0..rx_len-1]，期间若可能有新字节，先关 USART1_RXNE 中断 */
+}
+```
+
+## 5. PWM 呼吸灯
+
+接线：PA6 = TIM3_CH1 → LED。
+
+```c
+static void tim3_pwm_init(void)   /* 72MHz/72=1MHz 计数，ARR=999 → 1kHz PWM */
+{
+    GPIO_InitTypeDef        gpio;
+    TIM_TimeBaseInitTypeDef tim;
+    TIM_OCInitTypeDef       oc;
+
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
+    RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);
+
+    gpio.GPIO_Pin   = GPIO_Pin_6;
+    gpio.GPIO_Mode  = GPIO_Mode_AF_PP;
+    gpio.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_Init(GPIOA, &gpio);
+
+    tim.TIM_Period        = 1000 - 1;
+    tim.TIM_Prescaler     = 72 - 1;
+    tim.TIM_ClockDivision = TIM_CKD_DIV1;
+    tim.TIM_CounterMode   = TIM_CounterMode_Up;
+    TIM_TimeBaseInit(TIM3, &tim);
+
+    oc.TIM_OCMode      = TIM_OCMode_PWM1;
+    oc.TIM_OutputState = TIM_OutputState_Enable;
+    oc.TIM_Pulse       = 0;
+    oc.TIM_OCPolarity  = TIM_OCPolarity_High;
+    TIM_OC1Init(TIM3, &oc);
+    TIM_OC1PreloadConfig(TIM3, TIM_OCPreload_Enable);
+
+    TIM_Cmd(TIM3, ENABLE);
+}
+
+/* 主循环：呼吸 */
+static uint16_t duty = 0; static int8_t dir = 1; static uint32_t t0 = 0;
+if (millis() - t0 >= 2) {
+    t0 = millis();
+    TIM_SetCompare1(TIM3, duty);
+    duty += dir * 4;
+    if (duty >= 999) dir = -1;
+    if (duty == 0)   dir = 1;
+}
+```
+
+若用 TIM1 输出，务必加 `TIM_CtrlPWMOutputs(TIM1, ENABLE);`（MOE），否则无波形。
+
+## 6. ADC 电压采样
+
+接线：PA0 → 被测电压（0~3.3V，勿超 VDD）。
+
+```c
+uint16_t raw = adc_read();                    /* adc_read 见 API 速查 §5（含校准与超时） */
+float volt = raw * 3.3f / 4095.0f;
+printf("ADC=%u, V=%.2f\r\n", raw, volt);
+```
+
+## 7. I2C 器件读取（以 MPU6050 为例）
+
+接线：PB6=SCL、PB7=SDA → 器件，均 4.7k 上拉（多数模块自带）。MPU6050 7 位地址 0x68（AD0=GND）。
+I2C GPIO 用 `GPIO_Mode_AF_OD`（复用开漏）+ 外部上拉。
+
+```c
+/* i2c_mem_read()/i2c_mem_write() 带超时实现见 API 速查 §6 */
+uint8_t id = 0;
+if (i2c_mem_read(0x68, 0x75, &id, 1) == 0 && id == 0x68)
+    printf("MPU6050 OK\r\n");
+```
+
+F1 硬件 I2C 时序历史上有坑，对时序敏感的器件（OLED、部分传感器）建议软件模拟 I2C，后续版本会补充配方。
+
+## 8. SPI + 片选（以 W25Q 类 Flash 为例）
+
+接线：PA5=SCK、PA6→改用 PA7=MOSI、PA6=MISO（SPI1 默认 PA5/6/7），CS 用 PA4 推挽输出手动控制。
+
+```c
+GPIO_ResetBits(GPIOA, GPIO_Pin_4);            /* CS 低有效 */
+uint8_t id_h = spi_rw(0x90); (void)id_h;      /* JEDEC ID 指令示例 */
+uint8_t id1 = spi_rw(0x00), id2 = spi_rw(0x00), id3 = spi_rw(0x00);
+GPIO_SetBits(GPIOA, GPIO_Pin_4);
+```
+
+注意 SPI1 默认引脚与 TIM3_CH1(PA6) 冲突，同一工程二选一。
+
+## 9. 独立看门狗
+
+见 stm32-stdperiph-api.md §9。喂狗放主循环稳定路径，不要放中断里。
+
+## 10. 烧录提示（输出给用户）
+
+- **ST-Link / SWD**：SWDIO=PA13、SWCLK=PA14，接 ST-Link，Keil/CubeProgrammer 下载；
+- **串口 ISP**：BOOT0 接 1、复位 → PA9/PA10 串口用 FlyMcu/STM32CubeProgrammer 烧录，完成后 BOOT0 回 0；
+- 首次验证建议先烧「点灯 + 串口打印版本号」，确认最小系统正常再上业务代码。
+
+## 11. 传感器/总线驱动模式小抄（开源工程审查沉淀）
+
+来源：Health_watch 开源工程（ADXL345 / MAX30102 / OLED / DS18B20 / DS1302）审查提炼——只记模式不搬代码；接入新传感器时按此套路生成。
+
+### 软件 I2C（位敲）通用骨架
+- 引脚任意 GPIO：SCL 固定输出；SDA 在「推挽输出 ↔ 上拉输入」间切换（宏封装 `I2C_SDA_OUT / I2C_SDA_IN`）。
+- 核心五函数：`iic_start / iic_stop / iic_wait_ack / iic_send_byte / iic_read_byte`，时序用 us 级延时（别用 ms）。
+- 同一工程允许多套软件 I2C（不同引脚各一套 .c/.h），函数名前缀区分（`iic_` / `myiic_`）避免重复定义；每套的引脚与 RCC 时钟逐一核对。
+- 从器件驱动（ADXL345/MAX30102 等）只调这五个函数，不复用硬件 I2C 外设。
+
+### DS18B20 单总线
+- µs 级时序：复位拉低 480µs → 释放等 presence 应答；写时隙 60µs；读时隙拉低 ~2µs 后 15µs 内采样。
+- 读时序期间必须关中断（PRIMASK 短临界区），否则中断拉长时隙导致读位错乱。
+- 12 位转换最长 750ms：两次温度读取间隔 ≥750ms（与坑 24 DHT11 ≥1s 同类约束）。
+
+### DS1302 三线（CE + IO + SCLK）
+- 时间寄存器 BCD 编码存取；写寄存器前先清 WP 写保护位；支持突发模式一次读写整组时间。
+- IO 方向随读/写切换（同软件 I2C 方向切换套路）。
+
+### OLED 0.96"（SSD1306）硬件 I2C1
+- PB6/PB7 复用开漏 AF_OD（I2C1 默认脚，无需重映射）；`I2C_Init` 7bit 地址 / 100k~400k。
+- 事件轮询 `while(!I2C_CheckEvent(...))` 必须加超时（validator 会抓无超时忙等）。
+- 初始化命令序列照驱动手册（0xAE 关显示 → … → 0xAF 开显示）；显存用全屏缓冲一次性刷新。
+
+### 接入第三方传感器驱动（.c/.h）检查点
+编码探测（GBK/UTF-8）→ 引脚/时钟清单提取 → 软件延时时基核对（是否依赖特定 delay 实现）→ 忙等加超时 → ISR 共享变量 volatile → 跑 validator 申报残留。

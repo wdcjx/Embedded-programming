@@ -1,0 +1,9 @@
+# 本地保留但不发布
+Untitled.py
+
+# 系统/临时文件
+Thumbs.db
+.DS_Store
+*.bak
+*.tmp
+~$*
