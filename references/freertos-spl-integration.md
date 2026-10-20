@@ -83,3 +83,35 @@ Keil 工程 include path 三项：`Source/include`、`portable/RVDS/ARM_CM3`、F
 6. `configUSE_TIMERS=0` 却调用 `xTimerStart` → 链接错误；要用软件定时器先开 `configUSE_TIMERS=1` 并加 `timers.c`；
 7. 裸机 `printf` 任务栈不足 → 栈溢出（printf 家族局部开销大，任务栈 ≥ 256 字）；
 8. 两个任务都 `GPIOx->ODR ^= pin` → RMW 竞争（坑清单 #16）：多位/多任务共享 GPIO 用 SetBits/ResetBits（BSRR 原子）。
+
+## 7. Keil 集成 SOP（2025-10 于用户 SPL 工程 D:\stm32project\6 实测通过，Kernel V11.3.1）
+
+按序执行，每步对应一个可预期现象：
+
+1. **拷文件**：内核 `tasks.c/list.c/queue.c/(timers.c)/heap_4.c + portable/RVDS/ARM_CM3/port.c+portmacro.h` 进
+   `<工程>\FreeRTOS\src\`，`include\*` 进 `FreeRTOS\include\`，FreeRTOSConfig.h 进 User\；
+2. **Keil 加组**：新组（建议名 FreeRTOS）→ Add Existing Files 加 src 下全部 .c/.h；
+3. **Include Paths 两条都要**：`.\FreeRTOS\include`（内核头）+ `.\FreeRTOS\src`（portmacro.h——
+   Keil **不会**自动搜索 .c 所在目录，缺这条 port.c 报 `portmacro.h: No such file or directory`）；
+   FreeRTOSConfig.h 靠现有 User 路径即可；
+4. **F7 全工程构建**（不是 Ctrl+F7 单文件编译）→ 预期 3×`L6200E multiply defined`
+   （SVC/PendSV/SysTick_Handler，port.o 与 stm32f10x_it.o）——正常，进入下一步；
+5. **删 it.c 三个 Handler 整函数** → F7 → 预期 3×`L6218E Undefined symbol`（三钩子）——正常；
+6. **补三个钩子实现**（放 main.c 末尾）→ F7 → `0 Error(s)` 链接通过。
+
+### 钩子签名（V11.3.1 实测，照抄内核原型，不得自创）
+
+```c
+void vApplicationMallocFailedHook(void);
+void vApplicationStackOverflowHook(TaskHandle_t xTask, char *pcTaskName);
+void vAssertCalled(const char *pcFile, int line);   /* projdefs.h 原型 (const char*, int) */
+```
+
+> 踩过的坑：vAssertCalled 第二参数写成 `unsigned long` 或第一参数少 `const` 都会
+> `error #147-D: declaration is incompatible`——**报错信息里会印出官方原型**，照抄即可。
+> 钩子实现放 main.c 末尾；文件末尾保留换行（否则 #1-D 警告）。
+
+### 内核来源示例（用户本机）
+
+FreeRTOS-LTS 仓库结构：`FreeRTOS-LTS\FreeRTOS\FreeRTOS-Kernel\`（manifest.yml 标注版本）。
+LTS 202604.01 = **Kernel V11.3.1**，在本文档兼容区间内；AWS 系库（coreMQTT/Plus-TCP 等）暂不用。
