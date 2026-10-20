@@ -43,8 +43,11 @@ embed/                                # 单一技能：快速生成 + 工程纪�
 
 ## 安装
 
-- **DeepSeek Harness (DSH)**：侧边栏「技能库」→ 粘贴本仓库链接（GitHub / zip）安装，
+**仓库地址**：<https://github.com/wdcjx/Embedded-programming>
+
+- **DeepSeek Harness (DSH)**：侧边栏「技能库」→ 粘贴仓库链接 `https://github.com/wdcjx/Embedded-programming` 安装（自动克隆 + 热加载），
   或把整个 `embed` 文件夹放到 `~/.dsh/skills/embed`；
+- **命令行**：`git clone https://github.com/wdcjx/Embedded-programming.git`，把克隆出的文件夹（或其内容）放到上面的技能目录；
 - **Claude Code**：把文件夹复制到 `~/.claude/skills/embed`。
 
 > 注意：安装时目录名应与 SKILL.md 中的 `name: embed` 一致。
