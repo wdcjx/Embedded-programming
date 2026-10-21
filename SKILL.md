@@ -20,7 +20,7 @@ description: 嵌入式开发辅助技能：为 STM32 等单片机生成完整可
 ## 工作流程
 
 1. **确认硬件信息与库组合**（缺省先询问；未确认必须声明假设）：
-   - **库组合**：裸机 SPL（默认）/ SPL + FreeRTOS——RTOS 组合读 [references/freertos-spl-integration.md](references/freertos-spl-integration.md)，SysTick 归内核、中断只用 FromISR、分组改 Group_4，模板用 [templates/main_rtos_spl.c](templates/main_rtos_spl.c) + [templates/FreeRTOSConfig.h](templates/FreeRTOSConfig.h)；裸机 HAL（CubeMX+Keil，F103C8T6）——读 [references/hal-basics.md](references/hal-basics.md)，业务代码只进 USER CODE 区、回调=中断上下文、F1 ADC 校准手动加；HAL + FreeRTOS——两条铁律（时基迁 TIM、任务禁 HAL_Delay）见 hal-basics.md §8，完整集成文档待沉淀需如实说明。
+   - **库组合**：裸机 SPL（默认）/ SPL + FreeRTOS——RTOS 组合读 [references/freertos-spl-integration.md](references/freertos-spl-integration.md)，SysTick 归内核、中断只用 FromISR、分组改 Group_4，模板用 [templates/main_rtos_spl.c](templates/main_rtos_spl.c) + [templates/FreeRTOSConfig.h](templates/FreeRTOSConfig.h)；裸机 HAL（CubeMX+Keil，F103C8T6）——读 [references/hal-basics.md](references/hal-basics.md)，业务代码只进 USER CODE 区、回调=中断上下文、F1 ADC 校准手动加；HAL + FreeRTOS——读 [references/freertos-hal-integration.md](references/freertos-hal-integration.md)（CubeMX 实测：时基 TIM2 文件地图/三宏联动/CMSIS V1↔V2 对照/双堆模型/手写集成清单），两条铁律（时基迁 TIM、任务禁 HAL_Delay 用 osDelay）同见 hal-basics.md §8。
    - 默认假设：STM32F103C8T6（72MHz，64K Flash / 20K RAM，中密度 `STM32F10X_MD` + `startup_stm32f10x_md.s`）、HSE 8MHz、SysTick 节拍（裸机）或 FreeRTOS tick（RTOS）。核对 `HSE_VALUE=8000000`、`system_stm32f10x.c` 顶部 `SYSCLK_FREQ_72MHz`（`SystemInit()` 由启动文件在进 main 前调用）。APB1≤36MHz；APB 分频≠1 时定时器时钟 = 所在 APB ×2。
    - **改造既有工程**：先探测源码编码——国内 Keil 工程多为 GBK，工具读出 `invalid UTF-8` 即按 GBK 处理，读写保持同一编码（坑清单 17）；**CubeMX 工程（根目录有 .ioc）先读 .ioc**——芯片/引脚/时钟/固件版本/工具链全在里面（hal-basics §2）；沿用工程既有的模块划分与 NVIC 集中方式，不自作主张重排。
 2. **引脚分配表**：外设 → 引脚 → 复用功能，逐项查冲突：SPI1 的 PA6/PA7 与 TIM3 CH1/CH2 互斥；PA13/PA14 是 SWD；PA15/PB3/PB4 需 `GPIO_PinRemapConfig(GPIO_Remap_SWJ_JTAGDisable, ENABLE)`（开 AFIO 时钟）才能作 GPIO；EXTI/重映射必须开 `RCC_APB2Periph_AFIO`；外设实例不复用（USART1 已做 printf 就不分给传感器）。读 [references/spl-peripheral-checklist.md](references/spl-peripheral-checklist.md) 中所请求外设的初始化顺序。
@@ -69,6 +69,7 @@ description: 嵌入式开发辅助技能：为 STM32 等单片机生成完整可
 | `references/oled-ssd1306.md` | OLED 0.96"（SSD1306）驱动：显存模型/初始化命令表/江协风格 API 约定/软件 I2C 与 SPI 移植/常见坑 |
 | `references/hal-basics.md` | HAL 轨：CubeMX 工作流/句柄模型/SPL→HAL 对照/回调范式/F1 特有坑/RTOS 铁律 |
 | `references/hal-driver-patterns.md` | HAL 第三方驱动范式：分层结构/I2C 两类时序/SPI+CS/DWT 微秒延时与 HAL 时基迁移/OLED 双版本对照（基于 HAL_Driver_Lib） |
+| `references/freertos-hal-integration.md` | HAL+FreeRTOS 完整集成（CubeMX 实测）：时基 TIM2 文件地图/向量三宏联动/CMSIS V1↔V2/双堆模型/手写集成清单 |
 | `references/spl-peripheral-checklist.md` | 各外设初始化顺序清单与强制项（纪律） |
 | `references/isr-and-concurrency-rules.md` | ISR 模板、volatile/原子性/临界区规则（纪律） |
 | `references/known-pitfalls.md` | 已知坑清单（症状/原因/修法）（纪律） |

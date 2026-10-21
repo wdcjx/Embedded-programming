@@ -2,6 +2,13 @@
 
 > 使用中持续完善。完成打 [x]，进行中打 [~]，未开始留 [ ]。
 
+## v0.5.4 HAL+FreeRTOS 完整集成（text2 实测，四轨集齐）
+
+- 实测工程：D:\STM32CubeMX\text2（F103C8T6 + FW_F1 V1.8.7 + CMSIS_V1 + 时基 TIM2）；validator 四文件（main/freertos/timebase_tim/it.c）0 违规 0 警告——混合轨零误报
+- 新增 references/freertos-hal-integration.md：CubeMX 配置路径、生成文件地图（时基回调在 main.c USER CODE、HAL_InitTick 重写在 timebase_tim.c、任务创建 V1 在 main.c）、tick 数据流、三宏与时基选择联动（SysTick 宏注释机制）、CMSIS V1↔V2 API 对照、RTOS heap(3072) 与 C 库堆(0x200) 双堆模型、任务/中断纪律、手写集成清单 7 步
+- ROADMAP 待办「HAL + FreeRTOS 完整集成文档」完成；四轨（裸机 SPL/SPL+RTOS/裸机 HAL/HAL+RTOS）全部有实测基准
+- 剩余待办：HAL 外设配方（UART DMA/TIM PWM/ADC DMA 的 CubeMX 配置细节）、F4 跨家族扩展（用户意向待硬件落实）
+
 ## v0.5.3 HAL 第三方驱动范式（HAL_Driver_Lib 基准）
 
 - 新增 references/hal-driver-patterns.md：以 Mculover666/HAL_Driver_Lib（BSD-3，本机 D:\stm32project\HAL_Driver_Lib）18 驱动为基准，提炼 HAL 传感器/存储驱动通用写法——三层分离（static 移植层/协议层/API 层）、句柄注入两式、I2C 命令型与存储型时序、SPI+CS 接口收敛、DWT 微秒延时与 HAL_InitTick 时基迁移（裸机释放 SysTick / RTOS 双时基无冲突）、OLED 与江协版对照、命名流派与错误码约定、生成检查单 7 条
