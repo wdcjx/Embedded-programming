@@ -1,7 +1,7 @@
 # embed — 嵌入式（STM32）开发辅助 Skill
 
 一个给 AI Agent 用的技能（Skill）：让 Agent 能独立完成简单 STM32 项目的代码生成
-（GPIO / UART / TIM / ADC / I2C / SPI / EXTI / DMA / 看门狗），支持四条轨：
+（GPIO / UART / TIM / ADC / I2C / SPI / EXTI / DMA / 看门狗 / OLED 显示屏），支持四条轨：
 **裸机 SPL（默认）**、**SPL + FreeRTOS**、**裸机 HAL（CubeMX + Keil，起步）**、**HAL + FreeRTOS**，
 输出带引脚分配表、接线表、工程文件清单和烧录说明的完整代码。
 
@@ -18,6 +18,7 @@ embed/                                # 单一技能：快速生成 + 工程纪�
 │   ├── stm32-stdperiph-api.md        # 标准库 API 速查 + 密度宏/工程文件清单
 │   ├── peripheral-recipes.md         # 典型外设配方（点灯/串口/PWM/ADC/I2C/SPI…）
 │   ├── freertos-spl-integration.md   # SPL+FreeRTOS 集成规则（向量接管/FromISR/内存预算）
+│   ├── oled-ssd1306.md               # OLED 0.96"（SSD1306）驱动知识（I2C/SPI 双版）
 │   ├── hal-basics.md                 # HAL 轨：CubeMX/句柄模型/SPL→HAL 对照/F1 坑/RTOS 铁律
 │   ├── spl-peripheral-checklist.md   # 外设初始化顺序清单（纪律）
 │   ├── isr-and-concurrency-rules.md  # ISR/并发/volatile/临界区规则（纪律）

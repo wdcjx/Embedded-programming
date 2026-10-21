@@ -2,6 +2,12 @@
 
 > 使用中持续完善。完成打 [x]，进行中打 [~]，未开始留 [ ]。
 
+## v0.5.2 OLED（SSD1306）驱动沉淀
+
+- [x] 用户要求沉淀 OLED 代码；定位基准=江协科技例程（本机 230 个 OLED 文件溯源：4 针 I2C 版为正本，SPI 版 7940B 为变体；Health_watch OLED_I2C.c 与智慧农业 oled.c 为另两套实现，仅记录家族不混编）
+- [x] references/oled-ssd1306.md：引脚表（软件 I2C PB8/PB9 开漏 OD、SPI 五线 PB12~15+PA8 推挽）、显存模型（8 页×128 列、字节竖排 D0 在上、8x16 字符=2 页 8 列→4 行×16 列）、I2C 协议（写地址 0x78、控制字节 0x00/0x40、免 ACK 原理）、SPI 五线时序（DC 命令/数据、RES 复位脉冲）、初始化命令表（充电泵 0x8D=0x14 最常见不亮根因）、江协风格 API 约定（8 函数签名、Length 前导零）、移植清单（换脚/HAL 对照/硬件 I2C/RTOS 阻塞刷屏 40~80ms 禁 ISR）、坑 7 条（含字模必须 const 否则 1.5KB 白吃 RAM）
+- [x] SKILL.md 资源表、README 文件树/能力行同步
+
 ## v0.5.1 开源工程审查回归（Health_watch SPL 传感器工程）
 
 - [x] validator 修复 3 处：①NVIC 分组检查分级——main 所在文件用了 NVIC_Init 却无分组=VIOLATION，子文件降 WARNING（提示分组常集中在 main 文件）；②时钟顺序检查改「函数内比较」——方向切换等辅助函数排在 init 前导致的文件级误报根除（Health_watch iic.c/ds1302.c 教训）；③厂商库目录自动跳过（SKIP_DIR_PARTS 含 Libraries/StdPeriph/CMSIS/HAL_Driver/Middlewares，输出跳过计数）——智慧农业 SPL 库源码 8 条误报根除

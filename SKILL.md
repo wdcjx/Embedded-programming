@@ -65,7 +65,8 @@ description: 嵌入式开发辅助技能：为 STM32 等单片机生成完整可
 |---|---|
 | `references/stm32-stdperiph-api.md` | SPL API 速查 + 密度宏/启动文件/工程文件清单 |
 | `references/peripheral-recipes.md` | 典型外设完整配方（点灯/串口/PWM/ADC/I2C/SPI/看门狗…）+ 传感器/总线驱动模式小抄（软件 I2C/DS18B20/DS1302/OLED） |
-| `references/freertos-spl-integration.md` | SPL+FreeRTOS 集成规则（文件清单/向量接管/FromISR/内存预算） |
+| `references/freertos-spl-integration.md` | SPL+FreeRTOS 集成规则（文件清单/向量接管/FromISR/内存预算/Keil 集成 SOP） |
+| `references/oled-ssd1306.md` | OLED 0.96"（SSD1306）驱动：显存模型/初始化命令表/江协风格 API 约定/软件 I2C 与 SPI 移植/常见坑 |
 | `references/hal-basics.md` | HAL 轨：CubeMX 工作流/句柄模型/SPL→HAL 对照/回调范式/F1 特有坑/RTOS 铁律 |
 | `references/spl-peripheral-checklist.md` | 各外设初始化顺序清单与强制项（纪律） |
 | `references/isr-and-concurrency-rules.md` | ISR 模板、volatile/原子性/临界区规则（纪律） |
