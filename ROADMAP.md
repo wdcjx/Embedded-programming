@@ -2,6 +2,12 @@
 
 > 使用中持续完善。完成打 [x]，进行中打 [~]，未开始留 [ ]。
 
+## v0.5.3 HAL 第三方驱动范式（HAL_Driver_Lib 基准）
+
+- 新增 references/hal-driver-patterns.md：以 Mculover666/HAL_Driver_Lib（BSD-3，本机 D:\stm32project\HAL_Driver_Lib）18 驱动为基准，提炼 HAL 传感器/存储驱动通用写法——三层分离（static 移植层/协议层/API 层）、句柄注入两式、I2C 命令型与存储型时序、SPI+CS 接口收敛、DWT 微秒延时与 HAL_InitTick 时基迁移（裸机释放 SysTick / RTOS 双时基无冲突）、OLED 与江协版对照、命名流派与错误码约定、生成检查单 7 条
+- 发现并沉淀第三方驱动真 bug：OLED_Set_Pos 列低地址 `|0x01` 应为 `|0x00`（坑 30）——引用第三方驱动必须对照手册审查
+- 本地参考库：D:\stm32project\HAL_Driver_Lib（生成 HAL 驱动代码时可对照其写法）
+
 ## v0.5.2 OLED（SSD1306）驱动沉淀
 
 - [x] 用户要求沉淀 OLED 代码；定位基准=江协科技例程（本机 230 个 OLED 文件溯源：4 针 I2C 版为正本，SPI 版 7940B 为变体；Health_watch OLED_I2C.c 与智慧农业 oled.c 为另两套实现，仅记录家族不混编）

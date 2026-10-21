@@ -20,6 +20,7 @@ embed/                                # 单一技能：快速生成 + 工程纪�
 │   ├── freertos-spl-integration.md   # SPL+FreeRTOS 集成规则（向量接管/FromISR/内存预算）
 │   ├── oled-ssd1306.md               # OLED 0.96"（SSD1306）驱动知识（I2C/SPI 双版）
 │   ├── hal-basics.md                 # HAL 轨：CubeMX/句柄模型/SPL→HAL 对照/F1 坑/RTOS 铁律
+│   ├── hal-driver-patterns.md        # HAL 第三方驱动范式（I2C/SPI/DWT 延时，HAL_Driver_Lib 基准）
 │   ├── spl-peripheral-checklist.md   # 外设初始化顺序清单（纪律）
 │   ├── isr-and-concurrency-rules.md  # ISR/并发/volatile/临界区规则（纪律）
 │   └── known-pitfalls.md             # 已知坑清单（纪律）
@@ -64,7 +65,7 @@ embed/                                # 单一技能：快速生成 + 工程纪�
 - 默认目标：STM32F103C8T6（72MHz，中密度 MD；其他容量按密度宏/启动文件表适配）
 - **默认库：STM32 标准外设库（StdPeriph / SPL）**；F7/H7/G0/G4/L4 等无标准库的新系列切 HAL 轨并声明未实测校对
 - **SPL + FreeRTOS 支持**：FreeRTOSConfig.h 与任务工程骨架模板、向量接管/FromISR/优先级红线规则、validator RTOS 检查（Kernel 10.x~11.x；C8T6 20K RAM 内存预算提醒）
-- **裸机 HAL 支持（v0.5 起步）**：CubeMX 工作流与 USER CODE 区纪律、句柄模型/SPL→HAL 对照、回调=中断上下文检查（含 HAL_Delay→违规）、F1 特有坑（ADC 校准手动等）、HAL+FreeRTOS 铁律；HAL 外设配方与完整 RTOS 集成文档待沉淀
+- **裸机 HAL 支持（v0.5 起步）**：CubeMX 工作流与 USER CODE 区纪律、句柄模型/SPL→HAL 对照、回调=中断上下文检查（含 HAL_Delay→违规）、F1 特有坑（ADC 校准手动等）、HAL+FreeRTOS 铁律；HAL 第三方驱动范式（I2C/SPI 传感器与存储、DWT 微秒延时，v0.5.3）；HAL 外设配方与完整 RTOS 集成文档待沉淀
 - 裸机 + 标准库风格，SysTick 毫秒节拍非阻塞主循环，printf 按 Keil/GCC 区分重定向
 - 覆盖 recipes 中列出的典型外设场景；超出范围的需求 Agent 会如实说明
 
