@@ -100,3 +100,14 @@
 30. **第三方驱动照抄前必须对照手册审查（HAL_Driver_Lib 实测）**
     实例：Mculover666/HAL_Driver_Lib 的 OLED `OLED_Set_Pos` 低 4 位列地址命令写成 `(x&0x0f)|0x01`——SSD1306 手册为 `0x00|(x&0x0f)`，`|0x01` 强制 bit0=1，偶数列全部偏移为奇数，表现为显示整体错位半列。
     规避：引用第三方驱动先核对每条寻址/命令公式（别默认作者上过板验证）；同时注意国内驱动多为 GBK 编码，入库前转 UTF-8；字模数组核对 `const`（非 const 会把字模吃进 RAM）。
+
+31. **__HAL_LOCK 重入：回调里续接收发函数必返 HAL_BUSY（手册实测）**
+    HAL 的 IT/DMA 收发函数入口是「不可等待、失败即返回」的标志锁，完成回调在解锁**之前**执行——在 `HAL_UART_RxCpltCallback()` 里再调 `HAL_UART_Receive_IT()` 是最经典重入；收发同时、提前 return 未解锁同样中招。症状高度可辨识：「轮询发送正常，一加接收中断就挂」。
+    规避：每处 HAL 调用检查返回值；通信层用 DMA+空闲中断+环形缓冲；同一句柄同一时刻只从一个上下文访问（Mutex 保护）。详见 hal-freertos-field-guide.md §1。
+
+32. **二值信号量当互斥量用：优先级反转偶发卡死（手册实测）**
+    低优先级持锁 → 中优先级抢占 → 高优先级等锁——等待时间由无关任务决定，「逻辑上查不出原因」。FreeRTOS Mutex 自带优先级继承；二值信号量没有。注意：**不存在 configUSE_PRIORITY_INHERITANCE 宏**（优先级继承随 Mutex 内建，configUSE_MUTEXES=1 即可）；Mutex 禁止进 ISR；持锁期间禁 HAL 阻塞函数与 vTaskDelay。
+
+33. **同一外设实例 HAL 与 LL 混用（手册实测）**
+    HAL 句柄缓存 State/ErrorCode/Lock，LL 直改寄存器 HAL 不知情——「明明初始化了却 BUSY」或「配置被莫名覆盖」。跨外设混用安全。
+    规避：同外设要么全程 HAL，要么一次性 HAL 初始化后彻底交 LL（此后不调它的任何 HAL 函数、不依赖其回调）。

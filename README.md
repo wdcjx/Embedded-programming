@@ -22,6 +22,8 @@ embed/                                # 单一技能：快速生成 + 工程纪�
 │   ├── hal-basics.md                 # HAL 轨：CubeMX/句柄模型/SPL→HAL 对照/F1 坑/RTOS 铁律
 │   ├── hal-driver-patterns.md        # HAL 第三方驱动范式（I2C/SPI/DWT 延时，HAL_Driver_Lib 基准）
 │   ├── freertos-hal-integration.md   # HAL+FreeRTOS 完整集成（CubeMX 实测：时基 TIM2/三宏联动/双堆）
+│   ├── hal-freertos-field-guide.md   # 现场可靠性：__HAL_LOCK/Mutex/临界区/栈堆精算/Cache+DMA/低功耗
+│   ├── symptom-quickref.md           # 症状速查：死机/挂死/数据乱 → 根因反查
 │   ├── spl-peripheral-checklist.md   # 外设初始化顺序清单（纪律）
 │   ├── isr-and-concurrency-rules.md  # ISR/并发/volatile/临界区规则（纪律）
 │   └── known-pitfalls.md             # 已知坑清单（纪律）
@@ -67,7 +69,8 @@ embed/                                # 单一技能：快速生成 + 工程纪�
 - **默认库：STM32 标准外设库（StdPeriph / SPL）**；F7/H7/G0/G4/L4 等无标准库的新系列切 HAL 轨并声明未实测校对
 - **SPL + FreeRTOS 支持**：FreeRTOSConfig.h 与任务工程骨架模板、向量接管/FromISR/优先级红线规则、validator RTOS 检查（Kernel 10.x~11.x；C8T6 20K RAM 内存预算提醒）
 - **裸机 HAL 支持（v0.5 起步）**：CubeMX 工作流与 USER CODE 区纪律、句柄模型/SPL→HAL 对照、回调=中断上下文检查（含 HAL_Delay→违规）、F1 特有坑（ADC 校准手动等）；HAL 第三方驱动范式（I2C/SPI 传感器与存储、DWT 微秒延时，v0.5.3）
-- **HAL+FreeRTOS 完整支持（v0.5.4，四轨集齐）**：CubeMX 时基 TIM 集成文件地图、向量三宏联动、CMSIS V1↔V2 对照、双堆模型、手写集成清单；实测工程 validator 0 违规 0 警告；HAL 外设配方（DMA/PWM 配置细节）待沉淀
+- **HAL+FreeRTOS 完整支持（v0.5.4，四轨集齐）**：CubeMX 时基 TIM 集成文件地图、向量三宏联动、CMSIS V1↔V2 对照、双堆模型、手写集成清单；实测工程 validator 0 违规 0 警告
+- **现场可靠性知识（v0.6）**：症状速查反查表（死机/挂死/数据乱→根因）、__HAL_LOCK 陷阱、Mutex 优先级继承、临界区分层、任务栈/堆精算流程、Cache+DMA 一致性（F7/H7）、常见误解对照；HAL 外设配方（DMA/PWM 配置细节）待沉淀
 - 裸机 + 标准库风格，SysTick 毫秒节拍非阻塞主循环，printf 按 Keil/GCC 区分重定向
 - 覆盖 recipes 中列出的典型外设场景；超出范围的需求 Agent 会如实说明
 

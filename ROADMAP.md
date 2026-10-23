@@ -2,6 +2,15 @@
 
 > 使用中持续完善。完成打 [x]，进行中打 [~]，未开始留 [ ]。
 
+## v0.6 现场可靠性沉淀（避坑手册消化）
+
+- 来源：用户整理《STM32实战避坑手册_HAL与FreeRTOS》v1.0（F1/F4/H7、HAL v1.12–1.18、FreeRTOS V7.5+，15 类高频故障）
+- 新增 references/hal-freertos-field-guide.md（13 节增量，与既有文档去重后收录）：__HAL_LOCK 全解（回调续接重入/HAL_BUSY 检查纪律）、阻塞收发时间成本表、HAL vs SPL 开销实测与同外设 HAL/LL 混用禁止、启动三处隐性卡死（uwTick 排查第一原则）、临界区分层（禁 __disable_irq）、Mutex 优先级继承 vs 二值信号量（configUSE_PRIORITY_INHERITANCE 不存在）、任务栈 64B 固定开销与高水位流程、堆预算清单、落地顺序六步（先立规矩再跑业务）、D-Cache+DMA（F7/H7 预埋）、低功耗坑（待机电流 75 倍案例）、FreeRTOSConfig 最小配置集+configASSERT、常见误解对照表
+- 新增 references/symptom-quickref.md：14 条症状→根因反查表（映射到技能内文档）+ 三条排查原则——补上「从现象出发」的检索维度
+- known-pitfalls.md 追加坑 31（__HAL_LOCK 重入）/32（二值信号量互斥→优先级反转）/33（同外设 HAL/LL 混用）
+- SKILL.md 工作流加步骤 0（故障排查路由：死机/挂死类问题先查症状速查表）；资源表、README、能力行同步
+- 剩余待办：HAL 外设配方（UART DMA/TIM PWM/ADC DMA 的 CubeMX 配置细节）、F4 跨家族扩展（待硬件落实）
+
 ## v0.5.4 HAL+FreeRTOS 完整集成（text2 实测，四轨集齐）
 
 - 实测工程：D:\STM32CubeMX\text2（F103C8T6 + FW_F1 V1.8.7 + CMSIS_V1 + 时基 TIM2）；validator 四文件（main/freertos/timebase_tim/it.c）0 违规 0 警告——混合轨零误报
