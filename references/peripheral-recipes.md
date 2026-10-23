@@ -266,3 +266,45 @@ GPIO_SetBits(GPIOA, GPIO_Pin_4);
 
 ### 接入第三方传感器驱动（.c/.h）检查点
 编码探测（GBK/UTF-8）→ 引脚/时钟清单提取 → 软件延时时基核对（是否依赖特定 delay 实现）→ 忙等加超时 → ISR 共享变量 volatile → 跑 validator 申报残留。
+
+
+## 12. DAC 输出（波形发生基础）
+
+仅 HD/XL 大容量有 DAC（**C8T6 没有**）。PA4=CH1、PA5=CH2。
+
+```c
+static void dac_init(void)
+{
+    GPIO_InitTypeDef G; DAC_InitTypeDef D;
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
+    RCC_APB1PeriphClockCmd(RCC_APB1Periph_DAC, ENABLE);
+    G.GPIO_Pin = GPIO_Pin_4; G.GPIO_Mode = GPIO_Mode_AIN;   /* 模拟输入=高阻，别配成推挽 */
+    GPIO_Init(GPIOA, &G);
+    D.DAC_Trigger = DAC_Trigger_None;                       /* 无触发：写寄存器立即生效 */
+    D.DAC_WaveGeneration = DAC_WaveGeneration_None;         /* 不用硬件噪声/三角波发生器 */
+    D.DAC_LFSRUnmask_TriangleAmplitude = DAC_LFSRUnmask_Bit0;
+    D.DAC_OutputBuffer = DAC_OutputBuffer_Enable;           /* 带载必开；负载极轻可关提升摆率 */
+    DAC_Init(DAC_Channel_1, &D);
+    DAC_Cmd(DAC_Channel_1, ENABLE);
+    DAC_SetChannel1Data(DAC_Align_12b_R, 0);
+}
+
+/* 输出电压 v(0~3.3V)： */
+DAC_SetChannel1Data(DAC_Align_12b_R, (uint16_t)(v / 3.3f * 4095.0f));
+```
+
+要点：无触发模式写即生效——CPU 按节拍连续写数据寄存器就得到任意波形（相位用 `fmodf(t, period)` 算，见 §13）；DAC 输出脚与 ADC 输入脚用线直连即可同芯片回环自测，是波形实验的标准接线。
+
+
+## 13. 定时器节拍波形发生器 + 示波器信号链（实验九实测架构）
+
+「ISR 算波形 → DAC 输出 → ADC 回采 → 环形缓冲降采样 → 主循环显示」五段分工：
+
+1. **节拍**：TIM2 1ms 更新中断（PSC=71, ARR=999 @72MHz），NVIC 抢占 1。
+2. **ISR 产数据**：`fmodf(t, per)` 算相位 → 波形函数得瞬时值 → 限幅 → DAC 输出 → 软件启动 ADC 读回 → 按时间窗平均后写环形缓冲（240 点，写满转滚动），到刷新点置 `g_rw` 标志。
+3. **主循环刷屏**：判 `g_rw` 才动 LCD——擦旧（Fill 黑）→ 画网格（隔 4 点描点）→ DrawLine 连新波形 → 信息栏局部刷新。**ISR 绝不碰 LCD**（屏刷新几十 ms，会拖死 1ms 节拍）。
+4. **向量转发**：it.c 里真向量只转发 `void TIM2_IRQHandler(void){ TIM2_IRQHandler_Callback(); }`，业务体在 main.c。回调命名用 `_Callback` 后缀，别占 `xxHandler`（见 isr-and-concurrency-rules.md §6）。
+5. **状态机**：STOP/RUN/PAUSE；**改参数只在 STOP 态集中做**——RUN 中改多个 volatile float 组合参数，ISR 会采样到混合值（波形跳变）。
+6. **按键**：主循环 10ms 扫描 + 连续 8 次同值判稳定（80ms），只改状态不碰屏。
+
+ISR 预算参考：M3 软浮点每运算约 50~100 周期，1ms@72MHz 预算 72000 周期，一个 `fmodf` + 若干乘除约千级周期，余量充足；但 ADC 忙等 EOC（约 4µs）无超时仍应加护栏（检查器会 WARN）。

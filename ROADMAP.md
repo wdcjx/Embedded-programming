@@ -2,6 +2,16 @@
 
 > 使用中持续完善。完成打 [x]，进行中打 [~]，未开始留 [ ]。
 
+## v0.6.1 波形发生器与 TFT-LCD（实验九工程实测）
+
+- 来源：D:\stm32project\嵌入式实验九2（F103 大容量 HD + FSMC ILI9341 240×320 + DAC/ADC 回环波形实验，"Nemo M3S" 板）
+- 新增 references/fsmc-lcd-ili9341.md：FSMC 地址译码原理（NE→Bank 基址、RS 接 A10→bit11）、引脚全表、SPL 初始化模板（时序 0x0F/0x0F 宁慢勿快）、All-4-NE 兼容探测技巧、ILI9341/9328 双驱动与 0xD3 读 ID（先空读）、窗口绘图 API 约定、RGB565 R/B 硬件交换、坑 6 条
+- peripheral-recipes.md 新增 §12 DAC 配方（HD/XL，无触发直写+回环自测）与 §13 定时器节拍波形发生器+示波器信号链架构（ISR 产数据/LCD 只在主循环刷/环形缓冲降采样/状态机集中改参/`_Callback` 转发命名）
+- stm32-stdperiph-api.md 新增 §11 DAC、§12 FSMC 速查段
+- known-pitfalls.md 新增坑 34（游离重复文件以 .uvprojx 为准）/35（#include 大小写）/36（注释二次编码乱码）/37（头注释引脚漂移）
+- validate_generated.py：`*_Callback` 后缀豁免向量名校验（it.c 转发模式误报根除；中断纪律仍由 is_isr_context 的 Callback 分支覆盖）；回归 6 自测样本不变，实验九 main.c 1 误报清零（余 3 条忙等 WARNING 为真实提示）
+- 新能力声明：DAC、FSMC+TFT（HD/XL）、波形发生器信号链架构
+
 ## v0.6 现场可靠性沉淀（避坑手册消化）
 
 - 来源：用户整理《STM32实战避坑手册_HAL与FreeRTOS》v1.0（F1/F4/H7、HAL v1.12–1.18、FreeRTOS V7.5+，15 类高频故障）

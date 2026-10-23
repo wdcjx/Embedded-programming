@@ -24,6 +24,7 @@ embed/                                # 单一技能：快速生成 + 工程纪�
 │   ├── freertos-hal-integration.md   # HAL+FreeRTOS 完整集成（CubeMX 实测：时基 TIM2/三宏联动/双堆）
 │   ├── hal-freertos-field-guide.md   # 现场可靠性：__HAL_LOCK/Mutex/临界区/栈堆精算/Cache+DMA/低功耗
 │   ├── symptom-quickref.md           # 症状速查：死机/挂死/数据乱 → 根因反查
+│   ├── fsmc-lcd-ili9341.md           # FSMC 驱 TFT-LCD（ILI9341，HD/XL）：地址译码/时序/绘图/坑
 │   ├── spl-peripheral-checklist.md   # 外设初始化顺序清单（纪律）
 │   ├── isr-and-concurrency-rules.md  # ISR/并发/volatile/临界区规则（纪律）
 │   └── known-pitfalls.md             # 已知坑清单（纪律）
@@ -71,6 +72,7 @@ embed/                                # 单一技能：快速生成 + 工程纪�
 - **裸机 HAL 支持（v0.5 起步）**：CubeMX 工作流与 USER CODE 区纪律、句柄模型/SPL→HAL 对照、回调=中断上下文检查（含 HAL_Delay→违规）、F1 特有坑（ADC 校准手动等）；HAL 第三方驱动范式（I2C/SPI 传感器与存储、DWT 微秒延时，v0.5.3）
 - **HAL+FreeRTOS 完整支持（v0.5.4，四轨集齐）**：CubeMX 时基 TIM 集成文件地图、向量三宏联动、CMSIS V1↔V2 对照、双堆模型、手写集成清单；实测工程 validator 0 违规 0 警告
 - **现场可靠性知识（v0.6）**：症状速查反查表（死机/挂死/数据乱→根因）、__HAL_LOCK 陷阱、Mutex 优先级继承、临界区分层、任务栈/堆精算流程、Cache+DMA 一致性（F7/H7）、常见误解对照；HAL 外设配方（DMA/PWM 配置细节）待沉淀
+- **波形发生器与 TFT-LCD（v0.6.1，实验九工程实测）**：DAC 配方（HD/XL）、定时器节拍波形发生+示波器信号链架构（ISR 产数据/主循环刷屏/环形缓冲降采样）、FSMC 驱 ILI9341 完整知识（地址译码/时序/绘图）；validator 新增 `_Callback` 转发命名豁免
 - 裸机 + 标准库风格，SysTick 毫秒节拍非阻塞主循环，printf 按 Keil/GCC 区分重定向
 - 覆盖 recipes 中列出的典型外设场景；超出范围的需求 Agent 会如实说明
 

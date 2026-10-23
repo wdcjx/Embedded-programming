@@ -362,3 +362,17 @@ IWDG_Enable();
 - `stm32f10x.h` 中 `HSE_VALUE` 必须与板载晶振一致（默认 8000000），否则波特率/延时全错；
 - 中断服务函数名固定（`USART1_IRQHandler`…），拼错不报错但永远不进中断；
 - 标准库已停止维护，仅老系列可用——新系列需求见 SKILL.md「重要边界」。
+
+
+## 11. DAC（HD/XL 才有，C8T6 无）
+
+- 时钟：`RCC_APB1PeriphClockCmd(RCC_APB1Periph_DAC, ENABLE)`；PA4/PA5 配 `GPIO_Mode_AIN`
+- 核心：`DAC_Init(DAC_Channel_1, &D)` → `DAC_Cmd(DAC_Channel_1, ENABLE)` → `DAC_SetChannel1Data(DAC_Align_12b_R, 0~4095)`
+- 常用无触发直写（`DAC_Trigger_None`）；完整配方与波形发生架构见 peripheral-recipes.md §12/§13
+
+## 12. FSMC（HD/XL 才有，TFT-LCD 并口）
+
+- 时钟：`RCC_AHBPeriphClockCmd(RCC_AHBPeriph_FSMC, ENABLE)`——**AHB 总线**，不是 APB2；GPIO 走 APB2 + AFIO
+- 流程：数据/控制线全部 `GPIO_Mode_AF_PP` → `FSMC_NORSRAMInitTypeDef`（MemoryType_NOR / DataWidth_16b / AccessMode_B / 时序 AddressSetup=DataSetup=0x0F）→ `FSMC_NORSRAMInit(&f)` + `FSMC_NORSRAMCmd(Bank, ENABLE)`
+- Bank 基址：NE1~NE4 = `0x60000000 / 0x64000000 / 0x68000000 / 0x6C000000`；RS 接 A10 → 16 位宽度下用地址 bit11 区分命令/数据
+- 引脚全表/初始化序列/R-B 交换/坑：见 fsmc-lcd-ili9341.md

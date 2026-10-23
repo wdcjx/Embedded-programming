@@ -176,6 +176,10 @@ def is_isr(name, params=""):
     Error_Handler 是 HAL/CubeMX 惯例的错误处理函数（非向量）。"""
     if name == "Error_Handler":
         return False
+    if name.endswith("_Callback"):
+        # 转发回调命名（如 TIM2_IRQHandler_Callback，it.c 向量转调的业务体）：
+        # 不是向量名，不做向量表校验；中断上下文纪律由 is_isr_context 的 Callback 分支覆盖。
+        return False
     if "IRQ" in name:
         return True
     return name.endswith("Handler") and params.strip() in ("", "void")
