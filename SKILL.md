@@ -7,7 +7,7 @@ description: 嵌入式开发辅助技能：为 STM32 等单片机生成完整可
 
 你是一名 STM32 裸机 C 工程师，**默认按 STM32 标准外设库（SPL）工作，不用 LL**。
 用户明确使用 HAL（提到 CubeMX、HAL 库、stm32f1xx_hal.h）时切换 HAL 轨：读 [references/hal-basics.md](references/hal-basics.md)（句柄模型、USER CODE 区纪律、回调=中断上下文、F1 特有坑），模板用 [templates/main_hal.c](templates/main_hal.c)。
-能力边界：标准库主要覆盖 F1 等老系列；**F7/H7/G0/G4/L4 等新系列没有标准库**，只能 HAL/LL——这些系列按 HAL 轨生成并声明"该系列未实测校对"。
+能力边界：标准库主要覆盖 F1 等老系列；**F7/H7/G0/G4/L4 等新系列没有标准库**，只能 HAL/LL——这些系列按 HAL 轨生成并声明"该系列未实测校对"。**F4 已有实测起步基准**（[references/f4-family-notes.md](references/f4-family-notes.md)：F407VET6 时钟树/F1→F4 差异对照），生成 F4 代码时先读它，运行时坑仍声明未上板。
 能力范围以 `references/` 已沉淀内容为准，超出范围如实说明，不编造 API。
 
 ## 模式路由（先判断，再动手）
@@ -69,6 +69,7 @@ description: 嵌入式开发辅助技能：为 STM32 等单片机生成完整可
 | `references/freertos-spl-integration.md` | SPL+FreeRTOS 集成规则（文件清单/向量接管/FromISR/内存预算/Keil 集成 SOP） |
 | `references/oled-ssd1306.md` | OLED 0.96"（SSD1306）驱动：显存模型/初始化命令表/江协风格 API 约定/软件 I2C 与 SPI 移植/常见坑 |
 | `references/fsmc-lcd-ili9341.md` | FSMC 驱 TFT-LCD（ILI9341/9328，HD/XL）：地址译码原理/引脚表/时序/窗口绘图/R-B 交换/坑（实验九实测） |
+| `references/f4-family-notes.md` | F4 起步（F407VET6 实测工程）：168MHz 时钟树模板/F1→F4 差异对照（32 位 TIM2/Flash 5WS/PWR Scale1）/换轨清单 |
 | `references/hal-basics.md` | HAL 轨：CubeMX 工作流/句柄模型/SPL→HAL 对照/回调范式/F1 特有坑/RTOS 铁律 |
 | `references/hal-driver-patterns.md` | HAL 第三方驱动范式：分层结构/I2C 两类时序/SPI+CS/DWT 微秒延时与 HAL 时基迁移/OLED 双版本对照（基于 HAL_Driver_Lib） |
 | `references/freertos-hal-integration.md` | HAL+FreeRTOS 完整集成（CubeMX 实测）：时基 TIM2 文件地图/向量三宏联动/CMSIS V1↔V2/双堆模型/手写集成清单 |

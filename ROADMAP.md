@@ -2,6 +2,13 @@
 
 > 使用中持续完善。完成打 [x]，进行中打 [~]，未开始留 [ ]。
 
+## v0.6.2 F4 跨家族起步（F407VET6 工程实测）
+
+- 来源：D:\STM32CubeMX\text3（F407VET6 LQFP100，CubeMX + MDK-ARM，168MHz 骨架：UART4 PA0/PA1、TIM2 CH1、按键/LED 引脚；业务代码待写）
+- 新增 references/f4-family-notes.md：时钟树 168MHz 实测模板（M=8/N=336/P=2/Q，VCO 输入 1MHz 检查锚）、F1→F4 差异对照表（TIM2/TIM5 32 位、FLASH_LATENCY_5、PWR Scale1、APB1 42/Tim84、FPU、GPIO 速度档语义）、换轨清单（不变的 CubeMX 布局/USER CODE/回调纪律）、text3 引脚快照、F4 待办（上板实测/PWM 配方/printf 重定向/F4+FreeRTOS/FPU 选项）
+- 状态：工程文件级实测 + validator 三文件 0/0（F4 零误报）；未上板未编译——运行时坑待补
+- SKILL.md 能力行同步：F4 从「按 HAL 轨生成并声明未实测」升级为「有起步笔记基准」；F7/H7/G0/G4/L4 仍按未实测声明
+
 ## v0.6.1 波形发生器与 TFT-LCD（实验九工程实测）
 
 - 来源：D:\stm32project\嵌入式实验九2（F103 大容量 HD + FSMC ILI9341 240×320 + DAC/ADC 回环波形实验，"Nemo M3S" 板）

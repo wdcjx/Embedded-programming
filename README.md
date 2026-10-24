@@ -25,6 +25,7 @@ embed/                                # 单一技能：快速生成 + 工程纪�
 │   ├── hal-freertos-field-guide.md   # 现场可靠性：__HAL_LOCK/Mutex/临界区/栈堆精算/Cache+DMA/低功耗
 │   ├── symptom-quickref.md           # 症状速查：死机/挂死/数据乱 → 根因反查
 │   ├── fsmc-lcd-ili9341.md           # FSMC 驱 TFT-LCD（ILI9341，HD/XL）：地址译码/时序/绘图/坑
+│   ├── f4-family-notes.md            # F4 起步（F407VET6 实测）：168MHz 时钟树/F1→F4 差异对照/换轨清单
 │   ├── spl-peripheral-checklist.md   # 外设初始化顺序清单（纪律）
 │   ├── isr-and-concurrency-rules.md  # ISR/并发/volatile/临界区规则（纪律）
 │   └── known-pitfalls.md             # 已知坑清单（纪律）
@@ -73,6 +74,7 @@ embed/                                # 单一技能：快速生成 + 工程纪�
 - **HAL+FreeRTOS 完整支持（v0.5.4，四轨集齐）**：CubeMX 时基 TIM 集成文件地图、向量三宏联动、CMSIS V1↔V2 对照、双堆模型、手写集成清单；实测工程 validator 0 违规 0 警告
 - **现场可靠性知识（v0.6）**：症状速查反查表（死机/挂死/数据乱→根因）、__HAL_LOCK 陷阱、Mutex 优先级继承、临界区分层、任务栈/堆精算流程、Cache+DMA 一致性（F7/H7）、常见误解对照；HAL 外设配方（DMA/PWM 配置细节）待沉淀
 - **波形发生器与 TFT-LCD（v0.6.1，实验九工程实测）**：DAC 配方（HD/XL）、定时器节拍波形发生+示波器信号链架构（ISR 产数据/主循环刷屏/环形缓冲降采样）、FSMC 驱 ILI9341 完整知识（地址译码/时序/绘图）；validator 新增 `_Callback` 转发命名豁免
+- **F4 跨家族起步（v0.6.2，F407VET6 工程实测）**：168MHz 时钟树模板（M/N/P/Q 三级 PLL）、F1→F4 差异对照（TIM2/TIM5 32 位、Flash 5WS、PWR Scale1、APB1 42MHz）、换轨清单；F4 工程 validator 0/0 零误报（运行时坑待上板补充）
 - 裸机 + 标准库风格，SysTick 毫秒节拍非阻塞主循环，printf 按 Keil/GCC 区分重定向
 - 覆盖 recipes 中列出的典型外设场景；超出范围的需求 Agent 会如实说明
 
