@@ -70,6 +70,7 @@ description: 嵌入式开发辅助技能：为 STM32 等单片机生成完整可
 | `references/oled-ssd1306.md` | OLED 0.96"（SSD1306）驱动：显存模型/初始化命令表/江协风格 API 约定/软件 I2C 与 SPI 移植/常见坑 |
 | `references/fsmc-lcd-ili9341.md` | FSMC 驱 TFT-LCD（ILI9341/9328，HD/XL）：地址译码原理/引脚表/时序/窗口绘图/R-B 交换/坑（实验九实测） |
 | `references/f4-family-notes.md` | F4 起步（F407VET6 实测工程）：168MHz 时钟树模板/F1→F4 差异对照（32 位 TIM2/Flash 5WS/PWR Scale1）/换轨清单 |
+| `references/gsm-at-sms.md` | GSM 模块 AT 短信报警（SIM800/SIM900，实测）：供电/注网自检/CMGS 序列/回读+超时范式/报警节流三件套/生成检查单 |
 | `references/hal-basics.md` | HAL 轨：CubeMX 工作流/句柄模型/SPL→HAL 对照/回调范式/F1 特有坑/RTOS 铁律 |
 | `references/hal-driver-patterns.md` | HAL 第三方驱动范式：分层结构/I2C 两类时序/SPI+CS/DWT 微秒延时与 HAL 时基迁移/OLED 双版本对照（基于 HAL_Driver_Lib） |
 | `references/freertos-hal-integration.md` | HAL+FreeRTOS 完整集成（CubeMX 实测）：时基 TIM2 文件地图/向量三宏联动/CMSIS V1↔V2/双堆模型/手写集成清单 |

@@ -2,6 +2,15 @@
 
 > 使用中持续完善。完成打 [x]，进行中打 [~]，未开始留 [ ]。
 
+## v0.6.3 GSM 短信报警（火灾远程报警工程实测）
+
+- 来源：D:\stm32\基于 GSM模块的STM32 火灾远程报警系统设计\实物代码（F103 SPL：DS18B20 + ADC 烟雾/火焰 + OLED + 蜂鸣器，USART1 9600 发 AT 短信）
+- 新增 references/gsm-at-sms.md：硬件连接与 2A 供电坑、上电注网自检序列（AT/CPIN/CSQ/CREG）、Text 短信序列（CSCS/CMGF/CMGS 的 `>` 提示符/0x1A/+CMGS 30~60s 超时）、回读+超时代码范式（禁盲等）、报警节流三件套（锁存/冷却/重发升级）、阈值方向与极性、生成检查单 9 条
+- peripheral-recipes.md 新增 §14 传感器阈值报警架构（滞回/本地保底/远程通知分离）
+- known-pitfalls.md 新增坑 38（NVIC USART2_IRQn 配 USART1 外设→中断静默失效，实测 Serial.c）/39（反向换算后比较方向未翻转）/40（蜂鸣器初始化寄生在 AD.c）/41（锁存无重发+AT 盲等不回读）
+- validator：main.c 0/0；Serial.c 2 违规（Serial_RxData/RxFlag 非 volatile——Health_watch 同款复现）1 警告；AD.c 3 警告（校准/EOC 忙等）——均为真实提示，未改动用户工程
+- 未上板：AT 序列行为以模块实测为准（已声明）
+
 ## v0.6.2 F4 跨家族起步（F407VET6 工程实测）
 
 - 来源：D:\STM32CubeMX\text3（F407VET6 LQFP100，CubeMX + MDK-ARM，168MHz 骨架：UART4 PA0/PA1、TIM2 CH1、按键/LED 引脚；业务代码待写）
