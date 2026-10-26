@@ -20,6 +20,7 @@ description: 嵌入式开发辅助技能：为 STM32 等单片机生成完整可
 ## 工作流程
 
 0. **（故障排查场景）**用户描述「死机 / 挂死 / 卡住 / 数据乱 / 偶发异常」类问题时，先读 [references/symptom-quickref.md](references/symptom-quickref.md) 按症状反查根因（三条排查原则：先查时间基准 uwTick → 再看 HAL 返回值 → 一次只改一个变量），再进入对应文档细读。生成可靠性敏感代码（RTOS 通信、共享外设、串口收发）时读 [references/hal-freertos-field-guide.md](references/hal-freertos-field-guide.md)（__HAL_LOCK/Mutex 优先级继承/临界区分层/栈与堆精算/落地顺序）。
+   **（移植场景）**用户要把裸机库（GRBL/轻量协议栈/裸机驱动框架）搬进 STM32 或 RTOS 时，读 [references/grbl-port-f407.md](references/grbl-port-f407.md)：先画「中断 vs 主循环」职责表，再按 §10 检查单走（忙等让步点/ISR 安全化/临界区策略/优先级对照）。
 1. **确认硬件信息与库组合**（缺省先询问；未确认必须声明假设）：
    - **库组合**：裸机 SPL（默认）/ SPL + FreeRTOS——RTOS 组合读 [references/freertos-spl-integration.md](references/freertos-spl-integration.md)，SysTick 归内核、中断只用 FromISR、分组改 Group_4，模板用 [templates/main_rtos_spl.c](templates/main_rtos_spl.c) + [templates/FreeRTOSConfig.h](templates/FreeRTOSConfig.h)；裸机 HAL（CubeMX+Keil，F103C8T6）——读 [references/hal-basics.md](references/hal-basics.md)，业务代码只进 USER CODE 区、回调=中断上下文、F1 ADC 校准手动加；HAL + FreeRTOS——读 [references/freertos-hal-integration.md](references/freertos-hal-integration.md)（CubeMX 实测：时基 TIM2 文件地图/三宏联动/CMSIS V1↔V2 对照/双堆模型/手写集成清单），两条铁律（时基迁 TIM、任务禁 HAL_Delay 用 osDelay）同见 hal-basics.md §8。
    - 默认假设：STM32F103C8T6（72MHz，64K Flash / 20K RAM，中密度 `STM32F10X_MD` + `startup_stm32f10x_md.s`）、HSE 8MHz、SysTick 节拍（裸机）或 FreeRTOS tick（RTOS）。核对 `HSE_VALUE=8000000`、`system_stm32f10x.c` 顶部 `SYSCLK_FREQ_72MHz`（`SystemInit()` 由启动文件在进 main 前调用）。APB1≤36MHz；APB 分频≠1 时定时器时钟 = 所在 APB ×2。
@@ -74,6 +75,7 @@ description: 嵌入式开发辅助技能：为 STM32 等单片机生成完整可
 | `references/hal-basics.md` | HAL 轨：CubeMX 工作流/句柄模型/SPL→HAL 对照/回调范式/F1 特有坑/RTOS 铁律 |
 | `references/hal-driver-patterns.md` | HAL 第三方驱动范式：分层结构/I2C 两类时序/SPI+CS/DWT 微秒延时与 HAL 时基迁移/OLED 双版本对照（基于 HAL_Driver_Lib） |
 | `references/freertos-hal-integration.md` | HAL+FreeRTOS 完整集成（CubeMX 实测）：时基 TIM2 文件地图/向量三宏联动/CMSIS V1↔V2/双堆模型/手写集成清单 |
+| `references/grbl-port-f407.md` | 裸机强实时库（GRBL）→ STM32+FreeRTOS 移植范式（F407 实测）：中断/主循环职责表、cli/sei→PRIMASK、忙等让步点、`__get_IPSR()`+pending 中断安全化、LVGL 集成三件套 |
 | `references/hal-freertos-field-guide.md` | 现场可靠性：__HAL_LOCK/Mutex 优先级继承/临界区分层/任务栈 64B 开销与高水位/堆预算/落地顺序/Cache+DMA（F7/H7）/低功耗坑/常见误解对照 |
 | `references/symptom-quickref.md` | 症状速查：死机/挂死/数据乱等现场表现 → 根因反查表 + 三条排查原则 |
 | `references/spl-peripheral-checklist.md` | 各外设初始化顺序清单与强制项（纪律） |

@@ -120,3 +120,5 @@
 39. **传感器阈值方向与换算极性不符（GSM 火灾报警实测）**：AD2 用 100-raw*100/4096 反向换算（值大=浓度低）却仍用 > 阈值判断，与 AD1 正向换算同向比较——火焰通道报警方向存疑。反向换算后比较方向必须跟着翻转；阈值用打火机/酒精棉人工标定后写死，温度存 int16_t（uint8_t 丢负温小数）。
 40. **外设初始化寄生在别的模块（GSM 火灾报警实测）**：蜂鸣器 PA3 的 GPIO 初始化藏在 AD.c 的 AD_Init() 里——删 ADC 模块蜂鸣器静默失效。初始化与使用同模块收敛；发现"顺路初始化"即拆出独立 init。
 41. **报警短信只发一次且 AT 盲等（GSM 火灾报警实测）**：锁存后无重发升级（长火灾只收到一条）、无 GSM 未注网补发；AT 序列靠 Delay_ms(500) 盲等不回读 OK/ERROR——模块掉线/波特率错全发现不了。协议交互必须回读+超时；节流三件套见 gsm-at-sms.md §5。
+42. **HAL_UART_IRQHandler 与手写 RXNE 共存是有条件的（CoreScribe 实测）**：串口中断先调 HAL_UART_IRQHandler 再在 USER CODE 手写收发，能共存是因为 HAL 的 RXNE 分支只在 `RxState == BUSY_RX` 时消费 DR——从未调过 HAL_UART_Receive_IT 的工程 HAL 空转，DR 完整留给手写逻辑。哪天有人顺手调一次 Receive_IT，DR 被抢、手写流残缺。同一外设选定一种收发模型后不许再调它的 HAL 收发入口。
+43. **裸机协作式死循环直接进 RTOS 任务 = 饿死低优先级（CoreScribe 实测）**：GRBL 主循环 busy-loop 搬进高优先级任务后，UI 任务全靠主循环里插的「运动态每 5ms osDelay(1)」让步点（protocol_background_slice）才活着；而 SLEEP 分支遗留的 `while(!(sys.abort)){...}` 没插让步——一旦进入即完全饿死 UI。移植裸机库先给每个原版忙等 while 过堂：插让步点或换事件/通知。移植全流程见 grbl-port-f407.md §6。

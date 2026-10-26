@@ -2,6 +2,15 @@
 
 > 使用中持续完善。完成打 [x]，进行中打 [~]，未开始留 [ ]。
 
+## v0.7 裸机强实时库移植范式（CoreScribe F407 实测）
+
+- 来源：Hui404/CoreScribe（GitHub，CoreXY 写字机：F407VET6 + GRBL（AVR→STM32 移植）+ FreeRTOS V10.4.3 + LVGL V8.3 + TMC2209 + FSMC 触摸屏，自研 MIT/GRBL GPL-3.0 双许可）。精准下载 81 文件（跳过官方 HAL/FreeRTOS/LVGL 源码、CAD、Debug 编译产物、78MB 上位机 exe）
+- 新增 references/grbl-port-f407.md：移植范式知识——「中断 vs 主循环」职责表方法论、GRBL 三定时器移植（TIM2 ARR 动态改变频 + TIM3 10µs 脉宽 + TIM4 舵机）、cli/sei→PRIMASK（main.h:39）vs BASEPRI 取舍、`__get_IPSR()`+pending 延后执行中断安全化（st_go_idle 正面范式）、protocol_background_slice 运动态每 5ms 让步点、HAL_UART_IRQHandler 与手写 RXNE 共存机制（RxState==BUSY_RX 才消费 DR）、LVGL V8.3 集成三件套（LV_TICK_CUSTOM=1 取 xTaskGetTickCount/port 在任务里 init/timer_handler 返回值即休眠）、DWT 延时调度器感知双模、AT24C64 软 I2C + Acknowledge Polling、移植检查单 10 条
+- known-pitfalls.md 新增坑 42（HAL 与手写收发共存的条件）、43（裸机协作死循环进 RTOS 需插让步点，SLEEP 饿死案例）
+- validator 对 CoreScribe 七核心文件全 PASS 0/0（作者按 RTOS 规范改写过：ISR 置标志、EXTI 不调 RTOS API——跨文件共享变量的 volatile 检查仍是单文件启发式的已知边界）
+- SKILL.md 工作流步骤 0 加「移植场景」路由；资源表、README 文件树/能力行同步
+- 新能力声明：裸机库（GRBL 类）→ STM32+RTOS 移植方法论
+
 ## v0.6.3 GSM 短信报警（火灾远程报警工程实测）
 
 - 来源：D:\stm32\基于 GSM模块的STM32 火灾远程报警系统设计\实物代码（F103 SPL：DS18B20 + ADC 烟雾/火焰 + OLED + 蜂鸣器，USART1 9600 发 AT 短信）
