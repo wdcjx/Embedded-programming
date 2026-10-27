@@ -2,6 +2,14 @@
 
 > 使用中持续完善。完成打 [x]，进行中打 [~]，未开始留 [ ]。
 
+## v0.8 四轴遥控/飞控双机系统（2.4G 双 F103C8T6 实测工程）
+
+- 来源：D:\stm32project\遥控代码 与 D:\stm32project\飞控代码（已上板飞行的毕业设计级工程：TIM1 1ms 时间片调度 + NRF24L01 双向链路 + MPU6050 DMP + 串级 PID + X 型混控 + 遥控在线调参）
+- 新增 references/quad-drone-spl.md：双端完整引脚表、时间片调度模型（`>N` 清零周期=N+1ms）、NRF24L01 软件 SPI + Enhanced ShockBurst 双向链路（9 字节帧协议表、浮点两字节定点编码、心跳双窗失联判定）、串级 PID 工程细节（积分分离/反向计算抗饱和/油门门限清积分/Ki 除零保护/外环 D 用 Gyro 阻尼）、X 型混控公式与安全链（上电双保险/Lock+connect_protect+低压三条件门）、遥控 5 页菜单调参 UI、同类系统生成检查单 6 条
+- known-pitfalls.md 新增坑 44（控制环进 ISR+全工程 0 volatile：M3 对齐 32 位原子性掩护下"能飞但不规范"）/45（无线 Send 死等 IRQ 无超时，最坏 4ms 贴 5ms 节拍）/46（注释集体漂移+三处死码：开源工程以代码为准）
+- validate_generated.py 修复误报：函数名含 IRQ 即按向量校验 → 改为仅 `_IRQHandler` 后缀进向量校验、其余含 IRQ 名字须为已知向量真前缀（截断拼写）才算疑似向量；回归 bad_sample 10 违规不变、模板 PASS 不变、WWDG_IRQHandle 截断用例仍捕获。本工程 23 文件全 PASS
+- 新能力声明：遥控/飞控双机系统（无线链路+串级 PID+混控+安全链）生成与审查基准
+
 ## v0.7 裸机强实时库移植范式（CoreScribe F407 实测）
 
 - 来源：Hui404/CoreScribe（GitHub，CoreXY 写字机：F407VET6 + GRBL（AVR→STM32 移植）+ FreeRTOS V10.4.3 + LVGL V8.3 + TMC2209 + FSMC 触摸屏，自研 MIT/GRBL GPL-3.0 双许可）。精准下载 81 文件（跳过官方 HAL/FreeRTOS/LVGL 源码、CAD、Debug 编译产物、78MB 上位机 exe）

@@ -180,8 +180,15 @@ def is_isr(name, params=""):
         # 转发回调命名（如 TIM2_IRQHandler_Callback，it.c 向量转调的业务体）：
         # 不是向量名，不做向量表校验；中断上下文纪律由 is_isr_context 的 Callback 分支覆盖。
         return False
-    if "IRQ" in name:
+    if name.endswith("_IRQHandler"):
+        # CMSIS/startup 惯例的外设向量名（HAL_xxx_IRQHandler 库函数由库目录跳过规则豁免）
         return True
+    if "IRQ" in name:
+        # 含 IRQ 但不带 _IRQHandler 后缀：仅当它是某已知向量的真前缀（截断/拼写缺尾巴，
+        # 如 WWDG_IRQHandle、TIM1_UP_IRQHandle）才视为疑似拼错的向量名；
+        # 其余（如读 IRQ 引脚的普通函数 NRF24L01_R_IRQ）不是中断处理函数。
+        all_vec = MD_VECTORS | HD_XL_EXTRA
+        return any(v.startswith(name) and v != name for v in all_vec)
     return name.endswith("Handler") and params.strip() in ("", "void")
 
 
