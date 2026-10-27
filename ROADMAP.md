@@ -2,6 +2,15 @@
 
 > 使用中持续完善。完成打 [x]，进行中打 [~]，未开始留 [ ]。
 
+## v0.9 显示与存储外设全库沉淀（HAL_Driver_Lib 深读）
+
+- 来源：D:\stm32project\HAL_Driver_Lib（Mculover666/HAL_Driver_Lib 本机镜像，BSD-3）：37 个用户文件转码读码（GBK 16 个），覆盖 LCD 四总线（SPI ST7789/FSMC/FMC/LTDC）、SDRAM、QSPI、W25Q64、W5500、DW1000、传感器组
+- 新增 references/display-storage-hal.md：LCD 四总线选型总览表（屏内 GRAM vs 帧缓冲两套 API 形态）、ST7789 函数指针移植表与性能实测（HAL 单字节 632ms→寄存器直写 30ms=20 倍，DR 8 位访问）、FMC/FSMC 地址映射（LCD->lcd_reg/lcd_ram）与 MPU NOT-Cacheable 配置、LTDC+DMA2D 寄存器级 R2M/M2M 序列、W9825G6KH 六步初始化与刷新率公式（HCLK vs SDCLK 差）、QSPI 全参数化命令抽象+DLR、GB2312 字模偏移公式、实测 bug 清单 10 条、生成检查单 7 条
+- hal-driver-patterns.md 增补：§6 传感器读数范式（SGP30 CRC8 poly 0x31/前 15s 400ppm、HTS221 出厂校准线性插值+独立变量合成规矩、DS18B20 时序常量、HC-SR04 对象化）、§7 通信协议栈移植层范式（W5500 ioLibrary 八回调出网模板、DW1000 头/体双缓冲+PRIMASK 临界区+SPI 变速）
+- known-pitfalls.md 新增坑 47（switch 缺 break 贯穿家族：W25QXX ReadSR/字号选择三处同款复制扩散，特征"能跑但特定分支坏"）/48（多组寄存器读入共用小缓冲未及时合成，HTS221 T0_out 被覆盖+读栈垃圾）
+- validate_generated.py 时钟规则增强：识别宏封装时钟（`[A-Z_]*CLK*()` 调用存在时 VIOLATION 降 WARNING 请人工核对宏体）——单文件分析看不见宏展开的处理原则。本库 23 文件：21 PASS、led_drv.c 修复后 PASS（0V1W）、dw1000.c 真 VIOLATION（时钟在 main.c，引用时注明依赖）
+- 新能力声明：LCD/存储外设（四总线/SDRAM/QSPI）驱动生成与第三方驱动审查基准
+
 ## v0.8 四轴遥控/飞控双机系统（2.4G 双 F103C8T6 实测工程）
 
 - 来源：D:\stm32project\遥控代码 与 D:\stm32project\飞控代码（已上板飞行的毕业设计级工程：TIM1 1ms 时间片调度 + NRF24L01 双向链路 + MPU6050 DMP + 串级 PID + X 型混控 + 遥控在线调参）

@@ -337,14 +337,23 @@ def analyze(path, text, vectors, findings, irq_owner):
 
     # ---- 6. 时钟先开（容忍工程用宏封装时钟名；SPL 与 HAL 两种时钟宏都认）----
     any_clock = re.search(r"(\bRCC_\w*PeriphClockCmd\s*\(|__HAL_RCC_\w+_CLK_ENABLE\s*\()", text)
+    # 宏间接时钟使能：如 led_drv.h 的 #define LED_CLK() __HAL_RCC_GPIOC_CLK_ENABLE()
+    # 之类在别处展开的宏调用（形如 XXX_CLK()/XXX_CLOCK_EN()）。单文件分析看不见宏体，
+    # 不能当确凿证据清零，只把 VIOLATION 降为 WARNING 提示人工核对宏定义。
+    macro_clock = re.search(r"\b[A-Z][A-Z0-9_]*CLK[A-Z0-9_]*\s*\(\s*\)", text)
     for init_pat, label, clk_pat in PERIPHERALS:
         inits = list(re.finditer(init_pat, text))
         if not inits:
             continue
         if not any_clock:
-            add(line_of(text, inits[0].start()), VIOL,
-                f"检测到 {label} 初始化，但本文件未见任何 RCC_...PeriphClockCmd / "
-                "__HAL_RCC_..._CLK_ENABLE 时钟使能：时钟必须最先开启")
+            if macro_clock:
+                add(line_of(text, inits[0].start()), WARN,
+                    f"检测到 {label} 初始化，本文件时钟使能走宏封装（{macro_clock.group(0).strip()}）："
+                    "宏体在头文件/别处，请人工核对其中确含 RCC 时钟使能")
+            else:
+                add(line_of(text, inits[0].start()), VIOL,
+                    f"检测到 {label} 初始化，但本文件未见任何 RCC_...PeriphClockCmd / "
+                    "__HAL_RCC_..._CLK_ENABLE 时钟使能：时钟必须最先开启")
             continue
         # 时钟顺序只在同一函数内比较：方向切换等辅助函数可能排在 init 之前，
         # 文件级"首 RCC 行 vs 首初始化行"比较会误报（真实工程 Health_watch iic.c 教训）

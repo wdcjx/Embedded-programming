@@ -4,6 +4,7 @@
 > 本机镜像 `D:\stm32project\HAL_Driver_Lib`（生成代码时可直接对照）。
 > 覆盖 18 个驱动：OLED、AT24C02、BH1750、DS18B20、SGP30、HTS221、W25QXX-SPI/QSPI、W5500、HC-SR04、DW1000、LCD(FMC/FSMC/LTDC/SPI)、SDRAM、KEY、LED。
 > 本文提炼其**共性写法**为范式，供生成 HAL 轨传感器/存储驱动时对照。
+> LCD 四总线/SDRAM/QSPI/DMA2D 器件级细节与 bug 清单 → display-storage-hal.md（配套阅读）。
 
 ## 1. 通用结构：三层分离
 
@@ -87,7 +88,46 @@ DS18B20 目录自带 `core_delay/`（野火出品）——**DWT 周期计数微�
 
 DS18B20 本体：`ds18b20.c/h` 只有 3 个 API（init / 读温度 float），单总线时序全部用 core_delay 的 us 级延时实现。
 
-## 6. OLED：与技能已有文档的对照
+## 6. 传感器读数范式补充（SGP30 / HTS221 / DS18B20 / HC-SR04 实测细节）
+
+### 6.1 Sensirion 命令+CRC 型（SGP30）
+- 软复位用 I2C **通用调用地址 0x00**+0x06：总线上有其他响应 general-call 的器件会被一起复位（谨慎）。
+- 每条命令 2 数据字节跟 1 字节 **CRC8：poly 0x31、init 0xFF**（Sensirion 全家同款，读回必须校验）。
+- `init_air_quality` 后每 ≥1s 轮询一次；**前 15s 固定返回 CO2=400ppm**（手册 warm-up 行为，非故障）；持续断电会丢 baseline，恢复需重新 15s。
+
+### 6.2 出厂校准线性插值（HTS221）
+```
+T0/T1 degC：0x32/0x33 存 ×8 值，0x35 高 2 位补小数 → T/8
+T0_out/T1_out：0x3C/0x3D 与 0x3E/0x3F 各一组有符号 16bit
+T = T0 + (T_out − T0_out) × (T1 − T0) / (T1_out − T0_out)
+湿度同构（H0_rH/H1_rH 为 ÷2 值）
+```
+⚠️ 本库实现有 bug（0x3C~0x3F 分两次读进同一对 buffer[0]/[1] 先后被覆盖、合成却取 buffer[3]<<8|buffer[2] 栈垃圾），引用时必须改：**每组校准寄存器读入独立变量并立即合成**。
+
+### 6.3 DS18B20 时序常量（实测库值）
+复位：拉低 750µs→释放 15µs→存在检测双段各 240µs 超时；写槽 2µs+60µs；读槽拉低 2µs→10µs 采样→60µs 收尾。0xCC Skip ROM→0x44 转换→忙等读 0xFF→0xBE 读 scratchpad→0.0625℃/LSB（×0.0625 转 float）。
+
+### 6.4 HC-SR04（对象化模板）
+`hc_sr04_device_t{trig_port/pin, echo_port/pin, tim, distance}`——每探头一个实例，echo 宽度用 TIM 计数测。⚠️ 双 `while` 等 echo 起止**无超时**（探头缺失挂死）；库预留 Mutex pend/post 为 RTOS 钩子。
+
+## 7. 通信协议栈移植层范式（W5500 / DW1000）
+
+### 7.1 W5500：ioLibrary 八回调移植（w5500_port_hal.c）
+ioLibrary 只认八个符号，porting = 实现这八个：
+```
+cris_enter/exit   —— __set_PRIMASK(1)/__set_PRIMASK(0) 临界区（库内部中断安全）
+cs_select/deselect—— SPI CS GPIO
+spi_readbyte/writebyte、readburst/writeburst —— HAL_SPI_*（各 1000ms 超时）
+```
+再补：硬复位（RST 低 50ms 高 10ms）→ `wizchip_init(NULL,NULL)`（默认 2KB×8 socket 缓冲）→ PHY 自协商/手动 → `setnetinfo`（mac/ip/sn/gw/dns/dhcp）→ 库回调注册。**这套顺序 = W5500 出网模板**。
+
+### 7.2 DW1000：SPI 头/体双缓冲 + 保护区 + 变速
+- `writetospi/readfromspi`：头（寄存器地址+子地址）与数据体分开传缓冲——Decawave 驱动约定的签名，别合并。
+- `decamutexon/off`：进/出 SPI 访问的临界区（返回先前状态恢复）。
+- `SPI_ChangeRate`：初始化阶段 /32 低速 → 运行 /4 高速，直改 CR1 波特率位（0xFFC7 掩码清位重填）。
+- reset_DW1000：RSTn 拉低后转输入浮空 2ms（非保持输出）。
+
+## 8. OLED：与技能已有文档的对照
 
 | | 江协例程（SPL 轨基准，见 oled-ssd1306.md） | 本库 OLED（HAL 轨参考） |
 |---|---|---|
@@ -107,7 +147,7 @@ void OLED_Set_Pos(uint8_t x, uint8_t y)
 SSD1306 列地址低 4 位命令是 `0x00~0x0F`（本底 0x00），`|0x01` 是错写。若显示「整体右移半列/偶数列丢失」先查这里。
 **教训**：第三方驱动入库前，对照芯片手册核对每条命令公式，别默认作者写过板验证。
 
-## 7. 命名与风格流派（生成代码保持与工程内一致）
+## 9. 命名与风格流派（生成代码保持与工程内一致）
 
 | 流派 | 例 | 特征 |
 |---|---|---|
@@ -116,7 +156,7 @@ SSD1306 列地址低 4 位命令是 `0x00~0x0F`（本底 0x00），`|0x01` 是�
 
 错误码约定（本库）：0=成功，负数=失败（`int` 返回）；生成存储/传感器驱动时建议沿用，调用方可判错。
 
-## 8. 生成代码检查单（HAL 传感器/存储驱动）
+## 10. 生成代码检查单（HAL 传感器/存储驱动）
 
 1. 移植层收敛为 static 底层函数（§1），换板不改业务层
 2. I2C 从机地址写/读分开宏定义（0xA0/0xA1 式），注释 7bit 原始地址
@@ -124,4 +164,5 @@ SSD1306 列地址低 4 位命令是 `0x00~0x0F`（本底 0x00），`|0x01` 是�
 4. 超时用 `0xFFFF` 或明确毫秒数，别用 0（HAL 立即返回超时）
 5. 微秒时序（单总线/软件 I2C）用 DWT core_delay，禁裸 SysTick 方案（与 RTOS 冲突）
 6. 字模数组必须 `const`（放 Flash，1.5KB/套）
-7. 引用第三方驱动：核对寻址/命令公式（§6 Set_Pos 案例）、检查编码（GBK→转 UTF-8）
+7. 引用第三方驱动：核对寻址/命令公式（§8 Set_Pos 案例）、检查编码（GBK→转 UTF-8）、跑 validator；LCD/存储类先读 display-storage-hal.md §8 bug 清单
+8. 通信协议栈移植（W5500/DW1000/LWIP）：按 §7 回调清单逐个实现，临界区用 PRIMASK 而非关中断总开关（RTOS 下更安全）

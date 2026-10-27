@@ -73,7 +73,8 @@ description: 嵌入式开发辅助技能：为 STM32 等单片机生成完整可
 | `references/f4-family-notes.md` | F4 起步（F407VET6 实测工程）：168MHz 时钟树模板/F1→F4 差异对照（32 位 TIM2/Flash 5WS/PWR Scale1）/换轨清单 |
 | `references/gsm-at-sms.md` | GSM 模块 AT 短信报警（SIM800/SIM900，实测）：供电/注网自检/CMGS 序列/回读+超时范式/报警节流三件套/生成检查单 |
 | `references/hal-basics.md` | HAL 轨：CubeMX 工作流/句柄模型/SPL→HAL 对照/回调范式/F1 特有坑/RTOS 铁律 |
-| `references/hal-driver-patterns.md` | HAL 第三方驱动范式：分层结构/I2C 两类时序/SPI+CS/DWT 微秒延时与 HAL 时基迁移/OLED 双版本对照（基于 HAL_Driver_Lib） |
+| `references/hal-driver-patterns.md` | HAL 第三方驱动范式：分层结构/I2C 两类时序/SPI+CS/DWT 微秒延时与 HAL 时基迁移/OLED 双版本对照/传感器读数范式（SGP30 CRC/HTS221 插值/DS18B20 时序）/W5500+DW1000 通信移植层（基于 HAL_Driver_Lib） |
+| `references/display-storage-hal.md` | LCD 四总线（SPI ST7789/FSMC/FMC/LTDC+DMA2D）+SDRAM+QSPI Flash 器件级实现（HAL_Driver_Lib 实测）：选型表/寄存器直写 20 倍提速/MPU 配置/刷新率公式/字模偏移/实测 bug 清单 10 条 |
 | `references/freertos-hal-integration.md` | HAL+FreeRTOS 完整集成（CubeMX 实测）：时基 TIM2 文件地图/向量三宏联动/CMSIS V1↔V2/双堆模型/手写集成清单 |
 | `references/grbl-port-f407.md` | 裸机强实时库（GRBL）→ STM32+FreeRTOS 移植范式（F407 实测）：中断/主循环职责表、cli/sei→PRIMASK、忙等让步点、`__get_IPSR()`+pending 中断安全化、LVGL 集成三件套 |
 | `references/quad-drone-spl.md` | 2.4G 四轴遥控/飞控双机系统（F103C8T6 SPL 实测）：双端引脚表/TIM1 时间片调度/NRF24L01+软 SPI 双向链路与 9 字节帧协议/串级 PID（积分分离+反向计算抗饱和+油门门限）/X 型混控与安全链/遥控在线调参 UI/生成检查单 |
