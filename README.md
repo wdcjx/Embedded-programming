@@ -116,8 +116,7 @@
 - 问题/建议：[Issues](https://github.com/wdcjx/Embedded-programming/issues)——提问前先搜
   [references/known-pitfalls.md](references/known-pitfalls.md)（48 条实测坑）与
   [references/symptom-quickref.md](references/symptom-quickref.md)（症状反查表）；
-- 经验交流/求助：[Discussions](https://github.com/wdcjx/Embedded-programming/discussions)
-  （未开放前请先用 Issues）；
+- 经验交流/求助：[Discussions](https://github.com/wdcjx/Embedded-programming/discussions)；
 - 想沉淀自己的实测工程或增强 validator：规矩见 [CONTRIBUTING.md](CONTRIBUTING.md)。
 
 ## 文件结构
