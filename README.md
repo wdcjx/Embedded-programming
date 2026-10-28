@@ -56,10 +56,14 @@ embed/                                # 单一技能：快速生成 + 工程纪�
 
 **仓库地址**：<https://github.com/wdcjx/Embedded-programming>
 
+- **通用一键安装**（Claude Code / Codex 等主流 Agent CLI）：
+  ```bash
+  npx skills add wdcjx/Embedded-programming
+  ```
+  已实测：自动识别技能名 `embed`，完整带上 `references/`、`scripts/`（validator）、`templates/` 等子目录，并生成 `skills-lock.json` 便于团队复现。
 - **DeepSeek Harness (DSH)**：侧边栏「技能库」→ 粘贴仓库链接 `https://github.com/wdcjx/Embedded-programming` 安装（自动克隆 + 热加载），
   或把整个 `embed` 文件夹放到 `~/.dsh/skills/embed`；
-- **命令行**：`git clone https://github.com/wdcjx/Embedded-programming.git`，把克隆出的文件夹（或其内容）放到上面的技能目录；
-- **Claude Code**：把文件夹复制到 `~/.claude/skills/embed`。
+- **手动**：`git clone https://github.com/wdcjx/Embedded-programming.git`，把克隆出的文件夹改名为 `embed` 放到 `~/.claude/skills/`（或 `~/.dsh/skills/`）。
 
 > 注意：安装时目录名应与 SKILL.md 中的 `name: embed` 一致。
 
