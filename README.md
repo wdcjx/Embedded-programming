@@ -111,6 +111,15 @@
 
 （用 GCC 时 `compilerPath` 指向 `arm-none-eabi-gcc`；只用 Keil 编译也可以直接无视该报错。）
 
+## 反馈与社区
+
+- 问题/建议：[Issues](https://github.com/wdcjx/Embedded-programming/issues)——提问前先搜
+  [references/known-pitfalls.md](references/known-pitfalls.md)（48 条实测坑）与
+  [references/symptom-quickref.md](references/symptom-quickref.md)（症状反查表）；
+- 经验交流/求助：[Discussions](https://github.com/wdcjx/Embedded-programming/discussions)
+  （未开放前请先用 Issues）；
+- 想沉淀自己的实测工程或增强 validator：规矩见 [CONTRIBUTING.md](CONTRIBUTING.md)。
+
 ## 文件结构
 
 <details>
@@ -122,6 +131,8 @@ embed/                                # 单一技能：快速生成 + 工程纪�
 ├── README.md                         # 本文件
 ├── LICENSE                           # MIT
 ├── ROADMAP.md                        # 后续计划
+├── CONTRIBUTING.md                   # 贡献指南（反馈渠道/沉淀规矩/validator 回归要求）
+├── .github/ISSUE_TEMPLATE/           # Issue 模板（问题反馈/工程沉淀建议）
 ├── references/
 │   ├── stm32-stdperiph-api.md        # 标准库 API 速查 + 密度宏/工程文件清单
 │   ├── peripheral-recipes.md         # 典型外设配方（点灯/串口/PWM/ADC/I2C/SPI…）
