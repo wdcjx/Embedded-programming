@@ -5,8 +5,6 @@
 **裸机 SPL（默认）**、**SPL + FreeRTOS**、**裸机 HAL（CubeMX + Keil，起步）**、**HAL + FreeRTOS**，
 输出带引脚分配表、接线表、工程文件清单和烧录说明的完整代码。
 
-> 早期版本，随使用逐步完善，进度见 [ROADMAP.md](ROADMAP.md)。
-
 ## 生成结果长什么样
 
 ### 真实案例：大棚环境监控节点（用户实测工程）
@@ -151,6 +149,8 @@ embed/                                # 单一技能：快速生成 + 工程纪�
 ├── assets/
 │   ├── spl-project-template.md       # Keil 工程组织/必配项/占用估算
 │   └── images/                       # 首页真实案例展示图
+├── examples/
+│   └── blink_uart_demo/main.c         # bring-up 试例：点灯 + 串口打印版本/编译时间/运行时长
 ├── scripts/
 │   └── validate_generated.py         # 静态纪律检查（VIOLATION 必须清零，含 RTOS/HAL 规则）
 └── tests/
