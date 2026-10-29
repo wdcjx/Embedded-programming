@@ -1,4 +1,4 @@
-﻿---
+---
 name: embed
 description: 嵌入式开发辅助技能：为 STM32 等单片机生成完整可编译的 C 代码，支持四条轨——「裸机 SPL（标准外设库，默认）」「SPL + FreeRTOS」「裸机 HAL（CubeMX 生成 + Keil，v0.5 起步）」「HAL + FreeRTOS（铁律已定，完整集成待沉淀）」，内置两档模式——快速模式（直接生成简单示例）与工程纪律模式（老手纪律：时钟先开、ISR 纪律、volatile 与原子访问、等待带超时，并用 validate_generated.py 静态检查到 VIOLATION 清零）。当用户提到 STM32、单片机、嵌入式、标准库、HAL、CubeMX、FreeRTOS、RTOS、任务/队列/信号量、生成/编写/审查/检查/规范代码、跑 validate、外设驱动、点灯、串口收发、PWM、ADC 采样、I2C/SPI 传感器等需求时使用。
 ---
@@ -82,6 +82,8 @@ description: 嵌入式开发辅助技能：为 STM32 等单片机生成完整可
 | `references/audio-dds-fft-hal.md` | DDS 电子琴+FFT 频谱仪（F103VCT6 HAL 实测）：TIM 触发 DAC 波表 DMA(CIRCULAR)/ADC 外部触发批采样(NORMAL)/CMSIS-DSP 1024 点 CFFT/变频=停-改PSC-跑三行法/AD8402 数字电位器/ILI9325 A16→0x20000 实例/--density hd 首用 |
 | `references/hal-freertos-field-guide.md` | 现场可靠性：__HAL_LOCK/Mutex 优先级继承/临界区分层/任务栈 64B 开销与高水位/堆预算/落地顺序/Cache+DMA（F7/H7）/低功耗坑/常见误解对照 |
 | `references/heater-temp-control-spl.md` | 300W 加热台温控器（F103C6T6 SPL·IAR 实测）：HSI 无晶振 64MHz 方案+时基连锁失准/MAX6675 位拆测温+去极值滤波除数 bug/位置式 PID+低频 PWM 三保险/Flash 追加式磨损均衡+掉电缺口/ST7735S 160×80 长条屏+表驱动 UI/WFI 低功耗主循环/首个 IAR 工程 pragma 与移植差异 |
+| `references/multi-node-robot-rtos-hal.md` | 多节点机器人（F103/F105/F407 HAL+FreeRTOS 实测）：NRF 同地址广播拓扑+ACK 冲突/全系统 20 字节帧协议（浮点×100 编码/滑窗同步）/底盘 BMI055+Mahony 1ms+双 PID+全向轮运动学+云台坐标旋转/正点原子任务模板通病/validator 抓到的 MspInit 时钟缺失真 bug |
+| `references/foc-motor-hal.md` | FOC 无刷直驱（F105+AS5600 HAL 实测，SimpleFOC 移植）：SVPWM 六扇区表/上电校零流程/三环 PID 梯形积分+SysTick Ts/相电流采样+校零/单位混乱实录/25kHz 中心对齐+死区警示/生成检查单 |
 | `references/symptom-quickref.md` | 症状速查：死机/挂死/数据乱等现场表现 → 根因反查表 + 三条排查原则 |
 | `references/spl-peripheral-checklist.md` | 各外设初始化顺序清单与强制项（纪律） |
 | `references/isr-and-concurrency-rules.md` | ISR 模板、volatile/原子性/临界区规则（纪律） |

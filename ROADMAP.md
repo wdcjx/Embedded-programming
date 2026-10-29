@@ -1,6 +1,16 @@
-﻿# ROADMAP — embed 技能演进计划
+# ROADMAP — embed 技能演进计划
 
 > 使用中持续完善。完成打 [x]，进行中打 [~]，未开始留 [ ]。
+
+## v0.9.5 多节点机器人+FOC 沉淀（不发版：仅代码上库，无 tag/Release）
+
+- 来源：D:\stm32project\New_rtos版本\New_rtos版本\freertos\（7 个 Keil 工程：遥控 F103+RTOS / 底盘 F407+RTOS / 云台 F407+RTOS（01 镜像）/ 灯条 F105 裸机 / 发射 F103+RTOS / pitch_4310 + yaw_4310 F105XC 裸机 FOC；正点原子 atk HAL 模板家族，Output 均有产物=已编译，上板状态部分未知）：技能首个多节点协同系统 + 首个 F407+F105 组网 + 首个 FOC 工程样本
+- 新增 references/multi-node-robot-rtos-hal.md（6 节）：NRF 五节点同地址同信道+EN_AA 广播拓扑与 ACK 冲突边界、全系统 20 字节帧协议表（[0]0x55 帧头/按键位图/编码器 int8/摇杆 float×100 拆 int16/IMU 角/PID 输出/[19]0xff，环形滑窗同步无 CRC）、节点画像与任务划分（遥控四任务/底盘 BMI055→Mahony 1kHz→双 PID→全向轮运动学→TIM8 四路/云台镜像/灯条裸机 WS2812/发射 Biu）、FreeRTOS 模式（start_task 自杀死码/vTaskDelay vs DelayUntil/115200 下 20B≈1.7ms>1ms 周期过载）、validator 记录、生成检查单 8 条
+- 新增 references/foc-motor-hal.md（9 节）：AS5600+TIM1 25kHz 中心对齐信号链、SVPWM 六扇区表（Uout 限 0.577/T1T2 正弦公式/T0/2）、上电校零四步（Uq=2.5 开环 500 步拖动→锁 3π/2→读零电角）、三环 PID 梯形积分+SysTick VAL 差分 Ts、六闭环组合、低通 α=Tf/(Tf+Ts)、相电流采样（0.01Ω×50→2A/V、1000 次校零、简化 Clarke、无中点同步）、单位混乱实录（count/度/弧度三进制混用，回绕判断永不触发靠圈数跟踪兜底）、CAN 500kbps+死等邮箱、生成检查单 8 条
+- known-pitfalls.md 新增坑 58（NRF 多节点同地址+EN_AA：广播拓扑配单播应答，ACK 空中碰撞靠重发掩盖）/59（HAL MspInit 强符号一处定义只覆盖部分定时器：Biu.c TIM2/TIM3 时钟无声缺失，真硬件 bug，validator 抓到）/60（FreeRTOS 任务模板复制粘贴：三任务共用一个句柄+start_task vTaskDelete 后 taskEXIT_CRITICAL 死码）/61（FOC 互补 PWM 无死区无刹车：BDTR 全 0，分立半桥直通风险，正解 HAL_TIMEx_ConfigBreakDeadTime 0.5~1µs+MOE）/62（角度单位三进制混用：count/度/弧度链上打架，接口统一 SI+边界单次转换规矩）
+- validator：34 文件（F4 用 --density hd）3 FAIL 6 VIOLATION 全真实（N04_Biu.c TIM 时钟缺失真 bug/N03_uart1 ISR 内 printf+非 volatile ×4/N02_timer ISR 访问 htim2），31 文件 PASS 零误报；WARNING 两类（printf 重定向跨文件 6 处误报级+NRF 宏时钟正确降级），本轮无规则改动
+- 新能力声明：多机协同机器人（NRF 组网/帧协议/多节点任务划分）与 FOC 电机控制（SVPWM/校零/三环）生成与审查基准
+- 注：本轮仅 commit+push 上库，不打 tag 不发 Release（用户要求不发行公开版本）
 
 ## v0.9.4 300W 加热台温控器沉淀（不发版：仅代码上库，无 tag/Release）
 

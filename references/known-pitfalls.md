@@ -143,3 +143,13 @@
 56. **去极值均值滤波除数写 N 而非 N−2，读数×(N−2)/N（MAX6675 测温实测，安全级）**：读 5 次、`sum−max−min` 后剩 3 样本之和却 `/readTimes`（5）——温度读数系统性×0.6，显示偏低 40%、闭环设定点实际到不了或永远不可达（满功率加热靠散热兜底）。叠加第二个隐患：热电偶开路返回 0xff=255℃，无故障停机处理，tSet=350 时 error=95 仍继续加热。规矩：去极值滤波分母必须是 N−2，写完用恒温源校一点；传感器开路/超量程值必须映射到停机+报警，绝不能是"看起来正常的数"。
 
 57. **Flash 参数区先擦后写+半条记录校验不全，掉电丢数据（加热台存储实测）**：追加式磨损均衡（顺序写 12B 记录、写满 ErasePage 重来）平时正确，但两个掉电窗口致命——写满时"先整页擦除再写"，窗口内掉电全丢；逐字写一条记录中途掉电留半条，而读取范围校验只查 duty/tSet 两字段，第三个字段 initDelay 读到 0xFFFFFFFF 垃圾。规矩：掉电安全用双扇区交替+序号/valid 标志字（新页写完标 valid 再擦旧页）；读取校验必须覆盖结构体**每一个**字段；页尾参数区要查 .map 确认程序没占。
+
+58. **NRF24L01 多节点同地址同信道还开着 EN_AA：广播拓扑配单播应答（多节点机器人实测）**：五节点（遥控/底盘/云台/灯条/发射）收发地址 5 字节全配同一串、RF_CH 同 40、EN_AA=0x01——一包发出全体收到（广播效果），但 Enhanced ShockBurst 的 ACK 是单播语义：多个接收方同时回 ACK 在空中碰撞，发送方认为丢包触发重发，靠 SETUP_RETR 掩盖。表现为"偶尔丢帧、重发后又能收到"，规模一大（节点再多/干扰环境）重发风暴。规矩：真广播关 EN_AA/重发走纯 PTX/PRX；或每节点独立地址+各自 pipe（广播地址单独开 pipe0）；同地址"伪广播"只在 2~3 节点、容忍丢包的灯效类链路上可用。
+
+59. **HAL MspInit 强符号一处定义只覆盖部分外设：其余时钟无声缺失（发射机构实测，真硬件 bug）**：工程里 motor.c 定义了 `HAL_TIM_PWM_MspInit` 且只处理 TIM8（`if(htim->Instance==TIM8)`）；Biu.c 又对 TIM2/TIM3 调 `HAL_TIM_PWM_Init`——HAL 弱符号被 motor.c 强符号抢占，TIM2/TIM3 的分支不存在，**时钟使能代码永远不会执行**，PWM 无输出（或靠别处巧合初始化）。HAL 的 MspInit 是"全工程每个外设类型一个强符号"，不是"每个 .c 文件各写各的"。规矩：一个工程一个 `HAL_xxx_MspInit`，内部 `if(Instance==TIMx)` 覆盖**所有**用到的实例；新增定时器先往 MspInit 加分支再写 Init；评审时把 MspInit 实例清单与 MX_xxx_Init 调用清单做差集，差集非空即打回。
+
+60. **FreeRTOS 任务模板复制粘贴：三任务共用一个句柄+start_task 删除自己后再 taskEXIT_CRITICAL（多节点机器人实测）**：①my_task.c 里 light/motor/DATA_SEND 三个 xTaskCreate 的句柄参数全是 `&DATA_SEND_Handler`——句柄没人用时无害，一旦查任务状态/删除指定任务就张冠李戴；②正点原子模板 start_task 里 `vTaskDelete(startTaskHandle)` 之后还写着 `taskEXIT_CRITICAL()`——任务删除后代码永不执行，临界区计数随 TCB 销毁被丢弃（调度器恢复运行靠任务删除路径本身，不出事但语义骗人）。规矩：任务句柄一一对应命名；启动任务直接在 main 里 xTaskCreate 完毕 vTaskStartScheduler，不搞"创建者自杀"；模板里 `vTaskDelete(自己)` 后面的代码视为死码删除。
+
+61. **FOC 互补 PWM 不配死区不配刹车：分立半桥直通风险（4310 直驱云台实测快照）**：TIM1 中心对齐三相互补 PWM（25kHz）全工程没有 `HAL_TIMEx_ConfigBreakDeadTime`——TIM_BDTR 的 DTG/MOE 全默认 0。分立 MOS 管+栅极驱动若无硬件死区，上下管同相切换瞬间直通，轻则发热重则炸管。工程当前处于开环低速调试态侥幸未炸，闭环高频换向必踩。规矩：只要输出互补 PWM（FOC/H 桥/无感），死区 0.5~1µs+MOE=1 必配；BDTR 刹车输入（过流信号接 BKIN）是免费保险；HAL 侧就是一行 `HAL_TIMEx_ConfigBreakDeadTime(&htim1,&sBreakDeadTimeConfig)`。
+
+62. **角度单位三进制混用：count/度/弧度在一条数据链上打架（AS5600+FOC 实测）**：`as5600_read_angal()` 返回 raw count（0~4095）且换算角度的行被注释；`Get_Angel_L` 用 `/4096×2π` 出弧度；`Get_Velocity_H` 的回绕判断却按度写（`diff>180 → −360`），而输入是弧度——|diff|≤π<180 永不触发，靠圈数跟踪兜底才没炸；PID 误差又 `×180/PI` 转度、`Get_Angel_Notrack` 再 `0.08789°×π/180` 出弧度。每个函数局部都对，链起来单位乱成一团，速度/加速度类派生量必错。规矩：接口统一 SI（弧度/弧度每秒），count→物理量的转换只在传感器驱动边界做一次；每个函数注释标返回单位；回绕判断与被比较的量必须同单位（π vs 180 一眼假）。
