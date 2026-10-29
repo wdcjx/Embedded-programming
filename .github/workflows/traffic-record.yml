@@ -76,14 +76,46 @@ jobs:
               w.writerow(cols)
               for d in sorted(existing):
                   w.writerow([existing[d][c] for c in cols])
-          print(f'traffic_log.csv: {len(existing)} days ({min(existing)} ~ {max(existing)})')
+
+          # ---- summary page: cumulative totals (CSV rows are deduped by date,
+          # ---- so a plain sum is the all-time total; today's row is partial
+          # ---- and gets finalized on the next run)
+          days = sorted(existing)
+          n = len(days)
+          tot = {c: sum(int(existing[d][c]) for d in days)
+                 for c in cols[1:]}
+          peak = max(days, key=lambda d: int(existing[d]['clones']))
+          first_d, last_d = days[0], days[-1]
+          lines = [
+              '# 项目流量统计',
+              '',
+              f'> 由 GitHub Actions 每日自动更新（北京时间 00:00）。数据起点 {first_d}，明细见 [traffic_log.csv](traffic_log.csv)。',
+              '',
+              f'- **累计克隆：{tot["clones"]} 次**，独立克隆者 {tot["clones_uniques"]} 人·天',
+              f'- 累计访问：{tot["views"]} 次，独立访客 {tot["views_uniques"]} 人·天',
+              f'- 日均克隆 {tot["clones"] / n:.1f} 次；单日峰值 {existing[peak]["clones"]} 次（{peak}）',
+              '',
+              '口径说明：GitHub Traffic API 仅保留最近 14 天，本文档按日快照累积；uniques 为按天去重口径'
+              '（同一人跨天重复克隆各计一天），与 GitHub Insights 官方口径一致；最近一天为进行中数据。',
+              '',
+              '## 最近 14 天',
+              '',
+              '| 日期 | 访问 | 独立访客 | 克隆 | 独立克隆者 |',
+              '|------|------|----------|------|------------|',
+          ]
+          for d in days[-14:]:
+              r = existing[d]
+              lines.append(f"| {d} | {r['views']} | {r['views_uniques']} | {r['clones']} | {r['clones_uniques']} |")
+          with open('docs/traffic_summary.md', 'w', encoding='utf-8') as f:
+              f.write('\n'.join(lines) + '\n')
+          print(f'traffic_log.csv: {n} days; totals: clones={tot["clones"]} uniques={tot["clones_uniques"]}')
           EOF
 
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/traffic_log.csv
+          git add docs/traffic_log.csv docs/traffic_summary.md
           if git diff --cached --quiet; then
             echo "No traffic change, skip commit"
           else
