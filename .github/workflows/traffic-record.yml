@@ -1,0 +1,92 @@
+name: Traffic Record
+
+# 每天记录仓库 clones/views 数据到 traffic_log.csv
+# - GitHub Traffic API 只保留 14 天，必须每天落盘
+# - cron 为 UTC：16:00 UTC = 北京时间 00:00
+# - 使用 workflow 自带 GITHUB_TOKEN（无需手动配置 PAT）；
+#   fork 者没有 secrets，且下方 repository 守卫阻止误跑
+# - GITHUB_TOKEN 的 push 不会触发其他 workflow（GitHub 防递归设计）
+
+on:
+  schedule:
+    - cron: '0 16 * * *'
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: traffic-record
+  cancel-in-progress: false
+
+jobs:
+  record:
+    if: github.repository == 'wdcjx/Embedded-programming'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch traffic and merge into traffic_log.csv
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          python3 - <<'EOF'
+          import csv, json, os, urllib.request
+
+          repo = os.environ['REPO']
+          tok = os.environ['GH_TOKEN']
+
+          def get(path):
+              req = urllib.request.Request(
+                  f'https://api.github.com/repos/{repo}/traffic/{path}',
+                  headers={
+                      'Authorization': f'Bearer {tok}',
+                      'Accept': 'application/vnd.github+json',
+                      'User-Agent': 'traffic-record',
+                  })
+              with urllib.request.urlopen(req) as r:
+                  return json.load(r)
+
+          data = {}
+          for e in get('clones').get('clones', []):
+              data.setdefault(e['timestamp'][:10], {})['clones'] = e['count']
+              data.setdefault(e['timestamp'][:10], {})['clones_uniques'] = e['uniques']
+          for e in get('views').get('views', []):
+              data.setdefault(e['timestamp'][:10], {})['views'] = e['count']
+              data.setdefault(e['timestamp'][:10], {})['views_uniques'] = e['uniques']
+
+          csv_path = 'traffic_log.csv'
+          existing = {}
+          if os.path.exists(csv_path):
+              with open(csv_path, newline='', encoding='utf-8') as f:
+                  for row in csv.DictReader(f):
+                      existing[row['date']] = row
+
+          for d, v in data.items():
+              row = existing.get(d, {'date': d})
+              row.update({k: str(x) for k, x in v.items()})
+              for col in ('views', 'views_uniques', 'clones', 'clones_uniques'):
+                  row.setdefault(col, '0')
+              existing[d] = row
+
+          cols = ['date', 'views', 'views_uniques', 'clones', 'clones_uniques']
+          with open(csv_path, 'w', newline='', encoding='utf-8') as f:
+              w = csv.writer(f)
+              w.writerow(cols)
+              for d in sorted(existing):
+                  w.writerow([existing[d][c] for c in cols])
+          print(f'traffic_log.csv: {len(existing)} days ({min(existing)} ~ {max(existing)})')
+          EOF
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add traffic_log.csv
+          if git diff --cached --quiet; then
+            echo "No traffic change, skip commit"
+          else
+            git commit -m "chore: record daily traffic"
+            git push
+          fi
