@@ -2,6 +2,15 @@
 
 > 使用中持续完善。完成打 [x]，进行中打 [~]，未开始留 [ ]。
 
+## v0.9.2 两轮平衡小车沉淀（不发版：仅代码上库，无 tag/Release）
+
+- 来源：D:\stm32project\STM32平衡小车测试2（F103C8 SPL，已上板跑通）：江协布局 + 正点原子串口/MPU 底座 + 平衡小车之家三环结构
+- 新增 references/balance-car-spl.md：MPU6050 INT 事件驱动控制节拍（EXTI9_5 当 10ms 节拍源，与四轴 TIM1 时间片两范式对照）、直立 PD+速度 PI（低通/积分限幅/摔倒清积分）+转向环三环并联合成（速度环输出×Vertical_Kp 折算 PWM 域——与四轴串级结构差异）、实测参数组（10ms：540/1.8、0.3/0.0015、40/0）、双端引脚全表（TIM1 PWM 10kHz MOE/双编码器 TIM3+TIM4/SR04+TIM2/USART1+USART2）、现场妥协实录（右编码器接触不良→Encoder_Right=Encoder_Left 单编码器跑双轮、SR04 量程 25cm 截断）、安全链对比（摔倒保护✅/失联保护❌ 蓝牙锁存无超时）、bug 清单 8 条、生成检查单 6 条
+- known-pitfalls.md 新增坑 49（NVIC 分组位置敏感：唯一一次 Group_3 设置在 BT04_Init 而非 main 开头，先编码后换组优先级被重新解释——validator 盲区记录）/50（哑中断对：TIM_ITConfig 开源 NVIC_Init 缺失 + TIM4 ISR 内查 TIM3，双 bug 互抵成死码）/51（调参旋钮死参数三连：Med_Angle 传参被忽略/Turn_Kd 双分支同值/注释参数组未生效）
+- validator：15 用户文件 9 VIOLATION 全真实零误报（BT04 Res/Control 五变量/Usart printf-in-ISR+RX 缓冲），本轮无规则改动；人工另发现 5 处静态检查盲区 bug（死参数/查错定时器/NVIC 顺序），边界记录入文档 §8
+- 新能力声明：平衡车类（直立/速度/转向三环+编码器测速+H 桥双电机）生成与审查基准
+- 注：本轮仅 commit+push 上库，不打 tag 不发 Release（用户要求不发行公开版本）
+
 ## v0.9 显示与存储外设全库沉淀（HAL_Driver_Lib 深读）
 
 - 来源：D:\stm32project\HAL_Driver_Lib（Mculover666/HAL_Driver_Lib 本机镜像，BSD-3）：37 个用户文件转码读码（GBK 16 个），覆盖 LCD 四总线（SPI ST7789/FSMC/FMC/LTDC）、SDRAM、QSPI、W25Q64、W5500、DW1000、传感器组
