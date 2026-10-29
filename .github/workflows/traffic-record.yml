@@ -56,7 +56,7 @@ jobs:
               data.setdefault(e['timestamp'][:10], {})['views'] = e['count']
               data.setdefault(e['timestamp'][:10], {})['views_uniques'] = e['uniques']
 
-          csv_path = 'traffic_log.csv'
+          csv_path = 'docs/traffic_log.csv'
           existing = {}
           if os.path.exists(csv_path):
               with open(csv_path, newline='', encoding='utf-8') as f:
@@ -83,7 +83,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add traffic_log.csv
+          git add docs/traffic_log.csv
           if git diff --cached --quiet; then
             echo "No traffic change, skip commit"
           else
