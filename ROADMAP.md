@@ -2,6 +2,15 @@
 
 > 使用中持续完善。完成打 [x]，进行中打 [~]，未开始留 [ ]。
 
+## v0.9.3 DDS 电子琴+FFT 频谱仪沉淀（不发版：仅代码上库，无 tag/Release）
+
+- 来源：D:\stm32project\pengzhongxin（STM32F103VCT6 LQFP100 HD 密度，CubeMX 6.7.0 + FW_F1 1.8.4，已编译未上板）：DDS 电子琴（七音阶正弦发生）+ 音频 FFT 频谱仪（20 段柱状图）+ AD8402 数字电位器音量 + ILI9325 FSMC 屏
+- 新增 references/audio-dds-fft-hal.md：双定时器触发信号链架构（TIM2 TRGO→DAC 波表 DMA CIRCULAR / TIM3 TRGO→ADC 批采样 DMA NORMAL——模式对调是首错）、七音 PSC 表与误差分析（<0.3% 音分足够）、变频三行法（停-改 PSC-跑，对照工程里 EXTI 回调重跑 MX_TIM2_Init+Start_DMA 全家桶的反面教材）、CMSIS-DSP 1024 点 CFFT 链（arm_cfft_sR_f32 预生成实例/裁剪建议/bin=Fs/N）、峰值保持+缓降频谱 UI、AD8402 协议（2bit 地址+8bit 数据、双通道同写、上电静音）、ILI9325 FSMC 增量（A16→0x20000 半字换算实例、读 GRAM 逐像素 SetPos+dummy read、0x22 读写复用）、CubeMX #if 0 生成体改造法风险、bug 清单 8 条（频段标尺 1.87 倍偏移/scale 死旋钮/while 死等松手/写越 region 依赖覆盖/489KB 图片 vs 256K Flash 疑点）、生成检查单 10 条
+- known-pitfalls.md 新增坑 52（采样率注释自欺：CubeMX Prescaler 域是寄存器值非分频比，PSC=72 实为 73 分频，注释 10kHz 实际 5.48kHz，FFT 频段标尺连锁偏移 1.87 倍）/53（EXTI 回调重跑 MX_xxx_Init+Start_DMA 全家桶：ISR 跑 Init 级 API，正解三行停-改-跑）/54（CubeMX 允许 ADC Continuous 与 ExternalTrig 并存：F1 外部触发优先 Continuous 无效，读代码易误判采样率来源）
+- validator：`--density hd` 参数首次真实工程使用（F103xE 的 DMA2_Channel3_IRQHandler 在默认 MD 向量表报未知向量误报，带密度参数后消失）；11 文件 2 VIOLATION 全真实（main.c psc/scale 被 EXTI 回调访问非 volatile）零误报，本轮无规则改动
+- 新能力声明：音频/信号处理类（DAC 波表+ADC 触发采样+CMSIS-DSP 频谱）生成与审查基准；F1 高密度（HD）向量域实测
+- 注：本轮仅 commit+push 上库，不打 tag 不发 Release（用户要求不发行公开版本）
+
 ## v0.9.2 两轮平衡小车沉淀（不发版：仅代码上库，无 tag/Release）
 
 - 来源：D:\stm32project\STM32平衡小车测试2（F103C8 SPL，已上板跑通）：江协布局 + 正点原子串口/MPU 底座 + 平衡小车之家三环结构

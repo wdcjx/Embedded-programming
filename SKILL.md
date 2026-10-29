@@ -79,6 +79,7 @@ description: 嵌入式开发辅助技能：为 STM32 等单片机生成完整可
 | `references/grbl-port-f407.md` | 裸机强实时库（GRBL）→ STM32+FreeRTOS 移植范式（F407 实测）：中断/主循环职责表、cli/sei→PRIMASK、忙等让步点、`__get_IPSR()`+pending 中断安全化、LVGL 集成三件套 |
 | `references/quad-drone-spl.md` | 2.4G 四轴遥控/飞控双机系统（F103C8T6 SPL 实测）：双端引脚表/TIM1 时间片调度/NRF24L01+软 SPI 双向链路与 9 字节帧协议/串级 PID（积分分离+反向计算抗饱和+油门门限）/X 型混控与安全链/遥控在线调参 UI/生成检查单 |
 | `references/balance-car-spl.md` | 两轮平衡小车（F103C8 SPL 实测）：MPU6050 INT 事件驱动控制节拍（对照时间片）/直立 PD+速度 PI+转向三环并联合成（对照四轴串级）/实测参数/双编码器+H 桥+SR04 资源表/现场妥协（单编码器跑双轮）/安全链对比/bug 清单 8 条/生成检查单 |
+| `references/audio-dds-fft-hal.md` | DDS 电子琴+FFT 频谱仪（F103VCT6 HAL 实测）：TIM 触发 DAC 波表 DMA(CIRCULAR)/ADC 外部触发批采样(NORMAL)/CMSIS-DSP 1024 点 CFFT/变频=停-改PSC-跑三行法/AD8402 数字电位器/ILI9325 A16→0x20000 实例/--density hd 首用 |
 | `references/hal-freertos-field-guide.md` | 现场可靠性：__HAL_LOCK/Mutex 优先级继承/临界区分层/任务栈 64B 开销与高水位/堆预算/落地顺序/Cache+DMA（F7/H7）/低功耗坑/常见误解对照 |
 | `references/symptom-quickref.md` | 症状速查：死机/挂死/数据乱等现场表现 → 根因反查表 + 三条排查原则 |
 | `references/spl-peripheral-checklist.md` | 各外设初始化顺序清单与强制项（纪律） |
