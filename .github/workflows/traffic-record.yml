@@ -109,24 +109,13 @@ jobs:
           with open('docs/traffic_summary.md', 'w', encoding='utf-8') as f:
               f.write('\n'.join(lines) + '\n')
 
-          # ---- README badge line: rewrite the TRAFFIC marker block in place
-          import re
-          readme_path = 'README.md'
-          if os.path.exists(readme_path):
-              with open(readme_path, encoding='utf-8') as f:
-                  readme = f.read()
-              block = (
-                  '<!-- TRAFFIC:START -->\n'
-                  f'> 📈 **项目流量**（每日自动更新）：累计克隆 **{tot["clones"]} 次** · '
-                  f'独立克隆者 {tot["clones_uniques"]} 人·天 · 日均 {tot["clones"] / n:.1f} 次 · '
-                  f'单日峰值 {existing[peak]["clones"]} 次 —— [完整统计](docs/traffic_summary.md)\n'
-                  '<!-- TRAFFIC:END -->')
-              new_readme = re.sub(r'<!-- TRAFFIC:START -->.*?<!-- TRAFFIC:END -->',
-                                  block, readme, flags=re.S)
-              if new_readme != readme:
-                  with open(readme_path, 'w', encoding='utf-8', newline='') as f:
-                      f.write(new_readme)
-                  print('README traffic line updated')
+          # ---- traffic.json: data source for shields.io dynamic badges
+          # ---- (README total-clones / unique-cloners badges read this file)
+          with open('docs/traffic.json', 'w', encoding='utf-8') as f:
+              json.dump({'schemaVersion': 1,
+                         'clones': {'total': tot['clones'], 'uniques': tot['clones_uniques']},
+                         'views': {'total': tot['views'], 'uniques': tot['views_uniques']},
+                         'days': n, 'since': first_d, 'updated': last_d}, f, indent=2)
           print(f'traffic_log.csv: {n} days; totals: clones={tot["clones"]} uniques={tot["clones_uniques"]}')
           EOF
 
@@ -134,7 +123,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/traffic_log.csv docs/traffic_summary.md README.md
+          git add docs/traffic_log.csv docs/traffic_summary.md docs/traffic.json
           if git diff --cached --quiet; then
             echo "No traffic change, skip commit"
           else

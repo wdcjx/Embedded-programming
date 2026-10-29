@@ -1,13 +1,16 @@
 # embed — 嵌入式（STM32）开发辅助 Skill
 
+[![Release](https://img.shields.io/github/v/release/wdcjx/Embedded-programming)](https://github.com/wdcjx/Embedded-programming/releases)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+![STM32](https://img.shields.io/badge/STM32-F1%20%7C%20F4-blue)
+![Tracks](https://img.shields.io/badge/SPL%20%C3%97%20HAL%20%C3%97%20FreeRTOS-4%20tracks-informational)
+[![clones](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fwdcjx%2FEmbedded-programming%2Fmain%2Fdocs%2Ftraffic.json&query=%24.clones.total&label=total%20clones&color=brightgreen)](https://github.com/wdcjx/Embedded-programming/blob/main/docs/traffic_summary.md)
+[![unique cloners](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fwdcjx%2FEmbedded-programming%2Fmain%2Fdocs%2Ftraffic.json&query=%24.clones.uniques&label=unique%20cloners&color=blue)](https://github.com/wdcjx/Embedded-programming/blob/main/docs/traffic_summary.md)
+
 一个给 AI Agent 用的技能（Skill）：让 Agent 能独立完成简单 STM32 项目的代码生成
 （GPIO / UART / TIM / ADC / I2C / SPI / EXTI / DMA / 看门狗 / OLED 显示屏），支持四条轨：
 **裸机 SPL（默认）**、**SPL + FreeRTOS**、**裸机 HAL（CubeMX + Keil，起步）**、**HAL + FreeRTOS**，
 输出带引脚分配表、接线表、工程文件清单和烧录说明的完整代码。
-
-<!-- TRAFFIC:START -->
-> 📈 **项目流量**（每日自动更新）：累计克隆 **421 次** · 独立克隆者 318 人·天 · 日均 30.1 次 · 单日峰值 92 次 —— [完整统计](docs/traffic_summary.md)
-<!-- TRAFFIC:END -->
 
 ## 生成结果长什么样
 
