@@ -2,6 +2,16 @@
 
 > 使用中持续完善。完成打 [x]，进行中打 [~]，未开始留 [ ]。
 
+## v0.9.6 OV-Watch 智能手表沉淀（不发版：仅代码上库，无 tag/Release）
+
+- 来源：D:\stm32project\OV-Watch-main（No-Chicken OV-Watch V2.4 开源智能手表，F411CEU6 UFQFPN48，CubeMX 6.9.2 + FW_F4 1.27.1 + MDK V5.32 + FreeRTOS CMSIS_V2 + LVGL 8.2，用户确认实测上板；三件套=IAP BootLoader + 主固件 + PC SDL 模拟器）：技能首个 F411 样本 + 首个 STOP 低功耗实测 + 首个 LVGL/智能手表 + 首个 IAP 双固件升级
+- 新增 references/smartwatch-lvgl-lp-hal.md（10 节）：三件套结构与外设资源表（HSI 100MHz 无晶振省 BOM/SPI1 50MHz 模式 3/RTC WakeUp 2048Hz×2000/主电源自锁 PA3/外部看狗 PB1+PB2/KT6328 外设电源开关）、IAP 双区设计（Boot sector0~1/FLAG sector2/APP 0x0800C000、APP FLAG 掉电安全序、跳转五件套、Ymoden 失败码）、13 任务表（优先级/栈/职责）、低功耗链核心（两级休眠/STOP 序列 vTaskSuspendAll+停外狗+关 TICKINT、醒后恢复 TICKINT+重配时钟+ResumeAll、醒-查-再睡、唤醒源表五路、传感器按页唤醒省电矩阵）、LVGL 集成（自适应节拍 lv_task_handler 返回值 clamp/页面栈 PageManager/HW_USE 硬件抽象 PC 同源/DMA flush+SPI BSY 等待）、ST7789 240×280 offset=20+IPS 反色、CST816 软 I2C 对象化、电源管理（自锁/11 段电池曲线/充电内阻 0.128Ω 修正）、抬腕/翻腕手势链、bug 清单 8 条、validator 记录+生成检查单 10 条
+- known-pitfalls.md 新增坑 63（位运算 | 与算术 + 优先级：CST816 `Y=((DAT[2]&0x0F)<<8)|DAT[3]+OFFSET` 实算成 |(DAT[3]+OFFSET)，OFFSET=0 掩盖）/64（IAP 双区 VTOR 与 Keil IROM1 必须同步，只改一头→APP 覆盖 Boot 变砖或跳转 HardFault）/65（FreeRTOS 进 STOP 三件套：漏关 TICKINT 睡不着、醒后不重跑 SystemClock_Config 全系统降频乱套；IWDG 停不掉→低功耗产品用外狗 GPIO 喂）/66（运行期 malloc/free 订阅链表：heap_4 碎片+非线程安全，正解静态数组+计数）
+- validate_generated.py 新增 `--density f4`：F4 向量集（TIM1_BRK_TIM9/TIM1_UP_TIM10/TIM1_TRG_COM_TIM11 三合一、DMA1/2_Stream0~7、RTC_WKUP/OTG/ETH 等 ~80 向量）；首版漏 DMA2_Stream6/7（OV-Watch USART1_TX 在 Stream7）补齐后干净。75 文件（去 IAP 重复 BSP）5 VIOLATION=4 真 1 误（pubsub malloc×2/lcd_ready_cb/HardInt_receive_str 非 volatile；iic_hal 跨文件时钟误报）；回归 bad_sample/模板不变
+- 新能力声明：低功耗可穿戴（STOP 休眠/电池管理/抬腕手势/LVGL UI/IAP OTA）生成与审查基准；F411 域实测；validator F4 向量支持
+- README 跨家族 F4 行按用户点名更新：F407 机器人节点与 F411 智能手表均已上板
+- 注：本轮仅 commit+push 上库，不打 tag 不发 Release（用户要求不发行公开版本）
+
 ## v0.9.5 多节点机器人+FOC 沉淀（不发版：仅代码上库，无 tag/Release）
 
 - 来源：D:\stm32project\New_rtos版本\New_rtos版本\freertos\（7 个 Keil 工程：遥控 F103+RTOS / 底盘 F407+RTOS / 云台 F407+RTOS（01 镜像）/ 灯条 F105 裸机 / 发射 F103+RTOS / pitch_4310 + yaw_4310 F105XC 裸机 FOC；正点原子 atk HAL 模板家族，Output 均有产物=已编译，上板状态部分未知）：技能首个多节点协同系统 + 首个 F407+F105 组网 + 首个 FOC 工程样本

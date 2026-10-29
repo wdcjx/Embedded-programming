@@ -7,7 +7,7 @@ description: 嵌入式开发辅助技能：为 STM32 等单片机生成完整可
 
 你是一名 STM32 裸机 C 工程师，**默认按 STM32 标准外设库（SPL）工作，不用 LL**。
 用户明确使用 HAL（提到 CubeMX、HAL 库、stm32f1xx_hal.h）时切换 HAL 轨：读 [references/hal-basics.md](references/hal-basics.md)（句柄模型、USER CODE 区纪律、回调=中断上下文、F1 特有坑），模板用 [templates/main_hal.c](templates/main_hal.c)。
-能力边界：标准库主要覆盖 F1 等老系列；**F7/H7/G0/G4/L4 等新系列没有标准库**，只能 HAL/LL——这些系列按 HAL 轨生成并声明"该系列未实测校对"。**F4 已有实测起步基准**（[references/f4-family-notes.md](references/f4-family-notes.md)：F407VET6 时钟树/F1→F4 差异对照），生成 F4 代码时先读它，运行时坑仍声明未上板。
+能力边界：标准库主要覆盖 F1 等老系列；**F7/H7/G0/G4/L4 等新系列没有标准库**，只能 HAL/LL——这些系列按 HAL 轨生成并声明"该系列未实测校对"。**F4 已有实测基准**（[references/f4-family-notes.md](references/f4-family-notes.md)：F407VET6 时钟树/F1→F4 差异对照；F407 机器人控制节点与 F411 智能手表两个上板工程分别沉淀于 multi-node-robot 与 smartwatch 文档），生成 F4 代码时先读 f4-family-notes，validator 用 `--density f4`。
 能力范围以 `references/` 已沉淀内容为准，超出范围如实说明，不编造 API。
 
 ## 模式路由（先判断，再动手）
@@ -84,6 +84,7 @@ description: 嵌入式开发辅助技能：为 STM32 等单片机生成完整可
 | `references/heater-temp-control-spl.md` | 300W 加热台温控器（F103C6T6 SPL·IAR 实测）：HSI 无晶振 64MHz 方案+时基连锁失准/MAX6675 位拆测温+去极值滤波除数 bug/位置式 PID+低频 PWM 三保险/Flash 追加式磨损均衡+掉电缺口/ST7735S 160×80 长条屏+表驱动 UI/WFI 低功耗主循环/首个 IAR 工程 pragma 与移植差异 |
 | `references/multi-node-robot-rtos-hal.md` | 多节点机器人（F103/F105/F407 HAL+FreeRTOS 实测）：NRF 同地址广播拓扑+ACK 冲突/全系统 20 字节帧协议（浮点×100 编码/滑窗同步）/底盘 BMI055+Mahony 1ms+双 PID+全向轮运动学+云台坐标旋转/正点原子任务模板通病/validator 抓到的 MspInit 时钟缺失真 bug |
 | `references/foc-motor-hal.md` | FOC 无刷直驱（F105+AS5600 HAL 实测，SimpleFOC 移植）：SVPWM 六扇区表/上电校零流程/三环 PID 梯形积分+SysTick Ts/相电流采样+校零/单位混乱实录/25kHz 中心对齐+死区警示/生成检查单 |
+| `references/smartwatch-lvgl-lp-hal.md` | 智能手表（F411CEU6 HAL+FreeRTOS+LVGL 实测上板）：STOP 低功耗全套（两级休眠/醒-查-再睡/RTOS 进 STOP 三件套/外部看狗）/IAP 双固件升级（APP FLAG 掉电安全+跳转五件套+Ymodem）/LVGL 集成（自适应节拍/页面栈/HW_USE 硬件抽象 PC 同源）/ST7789 DMA flush+BSY/传感器按页唤醒/主电源自锁+电池曲线/--density f4 首用 |
 | `references/symptom-quickref.md` | 症状速查：死机/挂死/数据乱等现场表现 → 根因反查表 + 三条排查原则 |
 | `references/spl-peripheral-checklist.md` | 各外设初始化顺序清单与强制项（纪律） |
 | `references/isr-and-concurrency-rules.md` | ISR 模板、volatile/原子性/临界区规则（纪律） |

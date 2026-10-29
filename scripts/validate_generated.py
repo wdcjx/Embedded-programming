@@ -65,6 +65,42 @@ HD_XL_EXTRA = {
     "TIM8_TRG_COM_IRQHandler", "TIM8_CC_IRQHandler",
 }
 
+# F4 家族（F407/F411 等主流型，CubeMX/startup_stm32f4xx.s 命名）：
+# TIM1 三个向量与 TIM9/10/11 共享名，DMA 为 Stream 命名，RTC 拆 WKUP/Alarm。
+F4_VECTORS = CORE_HANDLERS | {
+    "WWDG_IRQHandler", "PVD_IRQHandler", "TAMP_STAMP_IRQHandler",
+    "RTC_WKUP_IRQHandler", "FLASH_IRQHandler", "RCC_IRQHandler",
+    "EXTI0_IRQHandler", "EXTI1_IRQHandler", "EXTI2_IRQHandler",
+    "EXTI3_IRQHandler", "EXTI4_IRQHandler",
+    "DMA1_Stream0_IRQHandler", "DMA1_Stream1_IRQHandler", "DMA1_Stream2_IRQHandler",
+    "DMA1_Stream3_IRQHandler", "DMA1_Stream4_IRQHandler", "DMA1_Stream5_IRQHandler",
+    "DMA1_Stream6_IRQHandler", "DMA1_Stream7_IRQHandler",
+    "ADC_IRQHandler", "CAN1_TX_IRQHandler", "CAN1_RX0_IRQHandler",
+    "CAN1_RX1_IRQHandler", "CAN1_SCE_IRQHandler", "EXTI9_5_IRQHandler",
+    "TIM1_BRK_TIM9_IRQHandler", "TIM1_UP_TIM10_IRQHandler",
+    "TIM1_TRG_COM_TIM11_IRQHandler", "TIM1_CC_IRQHandler",
+    "TIM2_IRQHandler", "TIM3_IRQHandler", "TIM4_IRQHandler",
+    "I2C1_EV_IRQHandler", "I2C1_ER_IRQHandler",
+    "I2C2_EV_IRQHandler", "I2C2_ER_IRQHandler",
+    "SPI1_IRQHandler", "SPI2_IRQHandler", "SPI3_IRQHandler",
+    "USART1_IRQHandler", "USART2_IRQHandler", "USART3_IRQHandler",
+    "USART6_IRQHandler", "UART4_IRQHandler", "UART5_IRQHandler",
+    "EXTI15_10_IRQHandler", "RTC_Alarm_IRQHandler",
+    "OTG_FS_WKUP_IRQHandler", "OTG_FS_IRQHandler",
+    "TIM5_IRQHandler", "TIM6_DAC_IRQHandler", "TIM7_IRQHandler",
+    "TIM8_BRK_TIM12_IRQHandler", "TIM8_UP_TIM13_IRQHandler",
+    "TIM8_TRG_COM_TIM14_IRQHandler", "TIM8_CC_IRQHandler",
+    "DMA2_Stream0_IRQHandler", "DMA2_Stream1_IRQHandler", "DMA2_Stream2_IRQHandler",
+    "DMA2_Stream3_IRQHandler", "DMA2_Stream4_IRQHandler", "DMA2_Stream5_IRQHandler",
+    "DMA2_Stream6_IRQHandler", "DMA2_Stream7_IRQHandler",
+    "I2C3_EV_IRQHandler", "I2C3_ER_IRQHandler",
+    "CAN2_TX_IRQHandler", "CAN2_RX0_IRQHandler", "CAN2_RX1_IRQHandler",
+    "CAN2_SCE_IRQHandler", "OTG_FS_EP1_OUT_IRQHandler", "OTG_FS_EP1_IN_IRQHandler",
+    "OTG_HS_EP1_OUT_IRQHandler", "OTG_HS_EP1_IN_IRQHandler", "OTG_HS_WKUP_IRQHandler",
+    "OTG_HS_IRQHandler", "ETH_IRQHandler", "ETH_WKUP_IRQHandler",
+    "FPU_IRQHandler", "SPI4_IRQHandler", "SPI5_IRQHandler", "SAI1_IRQHandler",
+}
+
 FUNC_RE = re.compile(
     r"(?m)^(?:static\s+)?[A-Za-z_]\w*[\s\*]+(?P<name>[A-Za-z_]\w*)\s*\((?P<params>[^;{}]*)\)\s*\{"
 )
@@ -187,7 +223,7 @@ def is_isr(name, params=""):
         # 含 IRQ 但不带 _IRQHandler 后缀：仅当它是某已知向量的真前缀（截断/拼写缺尾巴，
         # 如 WWDG_IRQHandle、TIM1_UP_IRQHandle）才视为疑似拼错的向量名；
         # 其余（如读 IRQ 引脚的普通函数 NRF24L01_R_IRQ）不是中断处理函数。
-        all_vec = MD_VECTORS | HD_XL_EXTRA
+        all_vec = MD_VECTORS | HD_XL_EXTRA | F4_VECTORS
         return any(v.startswith(name) and v != name for v in all_vec)
     return name.endswith("Handler") and params.strip() in ("", "void")
 
@@ -404,8 +440,8 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description="STM32 SPL 生成代码工程纪律检查（启发式）")
     ap.add_argument("files", nargs="*", help="要检查的 .c 文件（多文件工程请一起传入）")
     ap.add_argument("--dir", help="递归检查该目录下所有 .c 文件")
-    ap.add_argument("--density", choices=["md", "hd", "xl"], default="md",
-                    help="F103 密度（决定合法向量表），默认 md（C8T6 等）")
+    ap.add_argument("--density", choices=["md", "hd", "xl", "f4"], default="md",
+                    help="向量表域：F103 密度 md/hd/xl，或 F4 家族 f4（TIM1_UP_TIM10/DMA Stream 等命名），默认 md（C8T6 等）")
     args = ap.parse_args(argv)
 
     paths = [Path(p) for p in args.files]
@@ -417,6 +453,8 @@ def main(argv=None):
     vectors = set(MD_VECTORS)
     if args.density in ("hd", "xl"):
         vectors |= HD_XL_EXTRA
+    elif args.density == "f4":
+        vectors = set(F4_VECTORS)
 
     findings = []  # (file, line, level, msg)
     irq_owner = {}
