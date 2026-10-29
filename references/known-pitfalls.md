@@ -137,3 +137,9 @@
 53. **EXTI 回调里重跑 MX_xxx_Init+Start_DMA 全家桶：ISR 里跑 Init 级 API（DDS 电子琴实测）**：每次按键变音高，EXTI 回调整走 `MX_TIM2_Init()`（完整 HAL_TIM_Base_Init+MspInit 判重+全寄存器配置）+`HAL_TIM_Base_Start`+`HAL_DAC_Start_DMA`。能响，但 ISR 上下文跑 Init 级 HAL（时长不可控；一旦有人加日志/延时/嵌套即炸），且 CIRCULAR DMA 每键重启纯属浪费。配套症状：tim.c 里 MX_TIM2_Init 生成体被 #if 0、复制体改读全局 psc 塞进 USER 区——"生成体-影子体"双份漂移。正解三行：`__HAL_TIM_DISABLE → htim.Instance->PSC = 新值-1 → __HAL_TIM_ENABLE`，DMA 通道常开不重启。规矩：ISR 只置标志/改数据寄存器，Init 级 API 一律出中断；变频变频率类需求永远走"停-改-跑"，不走"重初始化"。
 
 54. **CubeMX 允许 ADC ContinuousConvMode 与 ExternalTrigConv 同时勾选：F1 上外部触发优先、Continuous 无效（DDS 电子琴+FFT 实测）**：.ioc 里 ADC1 同时配 ContinuousConvMode=ENABLE 和 ExternalTrigConv=T3_TRGO——CubeMX 不拦，F1 实际以 EXTTRG 为准（TIM3 TRGO 定节拍 5.5kHz），Continuous 位不起作用，读代码的人却会按"连续转换=自由跑满速"误判采样率来源。规矩：选了定时器外部触发就把 Continuous 关掉；读别人工程判断采样率，先看 ExternalTrigConv 再看 Continuous，两个都亮时以触发源为准；生成 ADC 配置时把"触发源→节拍公式"写进注释防误读。
+
+55. **换时钟源不改时基：HSI 64MHz 跑着 72MHz 的定时器（300W 加热台温控器实测）**：为省晶振走 `HSI/2×16=64MHz`（F1 HSI 路径上限 64M，到不了 72M），但全工程分频与注释仍按 72MHz 留下——TIM1 测温节拍注释 1s 实际 1.125s、TIM2 加热 PWM 注释 1s 实际 1.1875s、SPI 注释 18MHz 实际 32MHz。加热台靠热惯性扛住了，复制到任何时序敏感应用（串口波特率/采样率/PID 周期）立即失准。规矩：改时钟源后 grep 所有 `Prescaler|Period|BaudRate|注释里的 MHz`，用新频率逐个重算并同步注释；HSI 方案还要答三问（要不要 72M/USB/±1% 容差够不够，异步串口高波特率慎用）。
+
+56. **去极值均值滤波除数写 N 而非 N−2，读数×(N−2)/N（MAX6675 测温实测，安全级）**：读 5 次、`sum−max−min` 后剩 3 样本之和却 `/readTimes`（5）——温度读数系统性×0.6，显示偏低 40%、闭环设定点实际到不了或永远不可达（满功率加热靠散热兜底）。叠加第二个隐患：热电偶开路返回 0xff=255℃，无故障停机处理，tSet=350 时 error=95 仍继续加热。规矩：去极值滤波分母必须是 N−2，写完用恒温源校一点；传感器开路/超量程值必须映射到停机+报警，绝不能是"看起来正常的数"。
+
+57. **Flash 参数区先擦后写+半条记录校验不全，掉电丢数据（加热台存储实测）**：追加式磨损均衡（顺序写 12B 记录、写满 ErasePage 重来）平时正确，但两个掉电窗口致命——写满时"先整页擦除再写"，窗口内掉电全丢；逐字写一条记录中途掉电留半条，而读取范围校验只查 duty/tSet 两字段，第三个字段 initDelay 读到 0xFFFFFFFF 垃圾。规矩：掉电安全用双扇区交替+序号/valid 标志字（新页写完标 valid 再擦旧页）；读取校验必须覆盖结构体**每一个**字段；页尾参数区要查 .map 确认程序没占。

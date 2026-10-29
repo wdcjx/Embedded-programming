@@ -1,6 +1,15 @@
-# ROADMAP — embed 技能演进计划
+﻿# ROADMAP — embed 技能演进计划
 
 > 使用中持续完善。完成打 [x]，进行中打 [~]，未开始留 [ ]。
+
+## v0.9.4 300W 加热台温控器沉淀（不发版：仅代码上库，无 tag/Release）
+
+- 来源：D:\stm32project\源代码_241102（IAR EWARM F103C6T6 低密度，HSI 无晶振 64MHz，已编译，上板状态未知；oshwhub 开源 300W 220V 加热台）：技能首个 IAR 工程 + 首个 LD 密度 + 首个 HSI 方案 + 首个 WFI 低功耗主循环样本
+- 新增 references/heater-temp-control-spl.md：事件驱动+WFI 架构、HSI/2×16=64MHz 完整时钟序列与"换时钟源连锁重算"清单、MAX6675 位拆 SPI（BRR/BSRR 宏）+去极值滤波、位置式 PID（maxIntegral=(100-kp)/ki 注释整定推导）+秒级低频 PWM 三保险、Flash 0x08007800 追加式磨损均衡（12B×84 条/页）+掉电安全缺口、ST7735S 160×80 长条屏（LCD_LINE_OFFSET=24）+pageLoad[5][5] 页面×按键函数指针表+双级光标菜单、IAR #pragma optimize=low 与 Keil 移植差异、bug 清单 8 条、生成检查单 10 条
+- known-pitfalls.md 新增坑 55（HSI 改频后时基全按 72MHz 遗留：TIM1 1.125s/TIM2 1.1875s/SPI 32MHz，能跑靠热惯性）/56（去极值均值滤波除数 N 而非 N−2 → 读数×0.6 + 热电偶开路 0xff=255℃ 无停机处理，双隐患安全级）/57（Flash 参数先擦后写掉电窗口+半条记录校验不全读垃圾）
+- validator：8 用户文件 1 VIOLATION 3 WARNING 全真实零误报（EXTI 内 delay_ms 去抖/HSI-PLL 就绪忙等/SPI TXE 忙等），LD 向量与默认 md 表兼容，本轮无规则改动
+- 新能力声明：温控/低速执行器类（传感滤波+PID+低频 PWM+参数掉电保存）生成与审查基准；IAR 工程读码与移植基准；F103 低密度（C6T6）域实测
+- 注：本轮仅 commit+push 上库，不打 tag 不发 Release（用户要求不发行公开版本）
 
 ## v0.9.3 DDS 电子琴+FFT 频谱仪沉淀（不发版：仅代码上库，无 tag/Release）
 
