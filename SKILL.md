@@ -79,6 +79,7 @@ description: 嵌入式开发辅助技能：为 STM32 等单片机生成完整可
 | `references/grbl-port-f407.md` | 裸机强实时库（GRBL）→ STM32+FreeRTOS 移植范式（F407 实测）：中断/主循环职责表、cli/sei→PRIMASK、忙等让步点、`__get_IPSR()`+pending 中断安全化、LVGL 集成三件套 |
 | `references/quad-drone-spl.md` | 2.4G 四轴遥控/飞控双机系统（F103C8T6 SPL 实测）：双端引脚表/TIM1 时间片调度/NRF24L01+软 SPI 双向链路与 9 字节帧协议/串级 PID（积分分离+反向计算抗饱和+油门门限）/X 型混控与安全链/遥控在线调参 UI/生成检查单 |
 | `references/balance-car-spl.md` | 两轮平衡小车（F103C8 SPL 实测）：MPU6050 INT 事件驱动控制节拍（对照时间片）/直立 PD+速度 PI+转向三环并联合成（对照四轴串级）/实测参数/双编码器+H 桥+SR04 资源表/现场妥协（单编码器跑双轮）/安全链对比/bug 清单 8 条/生成检查单 |
+| `references/desktop-pet-spl.md` | 桌面宠物四足机器人（F103C8 SPL 实测，两版演进对照）：双串口单字节命令协议（语音+蓝牙同表）/四足对角步态与可打断动作系统/舵机镜像安装换算/50Hz 时基复用呼吸灯/A→B 官方 ISR 瘦身整改示范（ISR 刷屏→只置标志）/国产兼容芯零改动直烧实证/生成检查单 |
 | `references/audio-dds-fft-hal.md` | DDS 电子琴+FFT 频谱仪（F103VCT6 HAL 实测）：TIM 触发 DAC 波表 DMA(CIRCULAR)/ADC 外部触发批采样(NORMAL)/CMSIS-DSP 1024 点 CFFT/变频=停-改PSC-跑三行法/AD8402 数字电位器/ILI9325 A16→0x20000 实例/--density hd 首用 |
 | `references/hal-freertos-field-guide.md` | 现场可靠性：__HAL_LOCK/Mutex 优先级继承/临界区分层/任务栈 64B 开销与高水位/堆预算/落地顺序/Cache+DMA（F7/H7）/低功耗坑/常见误解对照 |
 | `references/heater-temp-control-spl.md` | 300W 加热台温控器（F103C6T6 SPL·IAR 实测）：HSI 无晶振 64MHz 方案+时基连锁失准/MAX6675 位拆测温+去极值滤波除数 bug/位置式 PID+低频 PWM 三保险/Flash 追加式磨损均衡+掉电缺口/ST7735S 160×80 长条屏+表驱动 UI/WFI 低功耗主循环/首个 IAR 工程 pragma 与移植差异 |

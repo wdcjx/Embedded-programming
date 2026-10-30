@@ -2,6 +2,15 @@
 
 > 使用中持续完善。完成打 [x]，进行中打 [~]，未开始留 [ ]。
 
+## v0.9.8 桌面宠物（四足舵机机器人）沉淀（不发版：仅代码上库，无 tag/Release）
+
+- 来源：D:\stm32project\桌宠代码\适配1.0版本电路板的代码\（Sngels_wyh 桌面宠物，oshwhub.com/sngelswyh/stm32-smart-desktop-pet 开源，STM32F103C8T6 SPL Keil）：**同工程两版对照读码**——A=2025.2.17 版（用户指定主体）、B=2026.3.23 适配国产芯片版（演进版）；首个四足舵机机器人样本 + 首个"同作者跨版本官方整改对照"样本
+- 新增 references/desktop-pet-spl.md（10 节）：两版演进表（命令表统一/ISR 瘦身/摇尾巴并发态/电量检测）/硬件资源表（TIM2 四腿+TIM3 尾巴与 LED 同定时器复用 50Hz/USART1 语音+USART3 蓝牙/ADC PA4 ×4 分压）/单字节命令协议表 0x29~0x50（语音蓝牙同表，Sustainedmove 区分持续运动）/四足对角步态（trot 四拍循环、舵机镜像 (180-Angle) 换算、可打断动作系统=每个延时点查模式标志、打断粒度=SpeedDelay）/表情系统（7 表情+电量叠加）/呼吸灯三段状态机数学（20ms 步进 ±100，全周期 8.4s）/电量公式与充电判定（≥110）/国产芯片适配实证（**两版 uvprojx 逐项 diff 完全一致——所谓适配=同代码同 hex 直接烧 CH32F103 类兼容芯，工程零改动**）/bug 清单 5 条/validator 记录/生成检查单 7 条
+- known-pitfalls.md 新增坑 68（串口 ISR 里调刷屏函数：软 I2C OLED 全屏几十 ms 级、DR 单字节必丢、跨文件调用链 validator 盲区；B 版"ISR 只置标志"官方整改路径入坑）/69（多来源同协议命令表复制 N 份：B 版统一函数后函数体仍两份 switch，case 0x39 缺 break 贯穿 0x40 的 bug 两份一模一样——复制 bug 随复制体扩散，坑 47 家族第三例）；总 69 条
+- validator：A_BlueTooth.c 16 VIOLATION（双 ISR 访 8 非 volatile 全局×2）+A_main.c 3（TIM3 ISR），全真实零误报；B 版 18 文件全 PASS 但 RxData_Voice/RxData_Blue（Variable.c 定义非 volatile，ISR 写+主循环读）为单文件分析盲区——工具边界如实记录
+- SKILL.md 资源表 balance-car 行后加 desktop-pet-spl.md 行；README 机电控制行扩四足步态（双实测→三实测）+坑 67→69 两处+文件树加行
+- 注：本轮仅 commit+push 上库，不打 tag 不发 Release（用户要求不发行公开版本）
+
 ## v0.9.7 内部 FLASH 读写+芯片 ID 沉淀（不发版：仅代码上库，无 tag/Release）
 
 - 来源：D:\stm32project\程序源码\程序源码\STM32Project-有注释版\15-1 读写内部FLASH 与 15-2 读取芯片ID（江协教学例程，SPL F103C8T6）：首个内部 FLASH 编程 + 系统存储区只读寄存器样本。体量小（用户代码 104 行），按知识增量并入两份既有文档，不新建 reference
