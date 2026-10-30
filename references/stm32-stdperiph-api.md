@@ -376,3 +376,35 @@ IWDG_Enable();
 - 流程：数据/控制线全部 `GPIO_Mode_AF_PP` → `FSMC_NORSRAMInitTypeDef`（MemoryType_NOR / DataWidth_16b / AccessMode_B / 时序 AddressSetup=DataSetup=0x0F）→ `FSMC_NORSRAMInit(&f)` + `FSMC_NORSRAMCmd(Bank, ENABLE)`
 - Bank 基址：NE1~NE4 = `0x60000000 / 0x64000000 / 0x68000000 / 0x6C000000`；RS 接 A10 → 16 位宽度下用地址 bit11 区分命令/数据
 - 引脚全表/初始化序列/R-B 交换/坑：见 fsmc-lcd-ili9341.md
+
+## 13. 内部 FLASH 读写 + 唯一 ID（2026-10 江协 15-1/15-2 实测）
+
+**读 = 指针直接访问，无需解锁**（存储器映射，随时可读）：
+
+```c
+uint32_t w = *((__IO uint32_t *)0x0800FC00);   // 读字
+uint16_t h = *((__IO uint16_t *)0x0800FC00);   // 读半字
+uint8_t  b = *((__IO uint8_t  *)0x0800FC00);   // 读字节
+```
+
+**写 = 解锁 → 擦除 → 编程 → 上锁**（每次操作独立 Unlock/Lock 也合法）：
+
+```c
+FLASH_Unlock();                        // KEYR 依次写 0x45670123 / 0xCDEF89AB
+FLASH_ErasePage(0x0800FC00);           // 页擦除，F1 中密度 1KB/页、HD 2KB/页
+FLASH_ProgramHalfWord(addr, data16);   // F1 最小编程单位是半字（16 位），地址必须半字对齐
+FLASH_ProgramWord(addr, data32);       // 字编程 = 两次半字
+FLASH_Lock();
+// 全擦（连程序一起毁，慎用）：FLASH_EraseAllPages()
+// 每个 SPL 调用返回 FLASHStatus：FLASH_COMPLETE 才算成功，产品代码应检查
+```
+
+**系统存储区只读寄存器（无需任何配置，上电即读）**：
+
+| 地址 | 宽度 | 含义 |
+|---|---|---|
+| `0x1FFFF7E0` | 半字 | Flash 大小，单位 KB（C8T6 读 0x40=64→按封装实际，ZET6 读 0x200=512） |
+| `0x1FFFF7E8` | 96 位 | 产品唯一 ID：Wafer X 坐标（15位）/ Y 坐标（15位）/ W 批次号（32位）串成 3 字 |
+
+UID 用途：设备序列号打印、软件授权绑定（ license=hash(UID) ）、生产追溯。**家族地址不同**：F1=0x1FFFF7E8，F4=0x1FFF7A10，F0=0x1FFFF7AC——跨系列移植时别照抄。掉电保存完整配方与 IROM 预留坑见 peripheral-recipes.md §15。
+

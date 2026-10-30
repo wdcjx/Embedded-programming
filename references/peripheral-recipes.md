@@ -312,3 +312,43 @@ ISR 预算参考：M3 软浮点每运算约 50~100 周期，1ms@72MHz 预算 720
 ## 14. 传感器阈值报警架构（GSM 火灾报警沉淀）
 
 采集（轮询/定时）→ 换算（极性决定比较方向）→ 阈值判断（**滞回**：越上限报警、回落到 阈值-滞回带 才恢复，防抖动反复）→ 声光本地报警（保底，任何情况不断）→ 远程通知（锁存只发一条+冷却+超时重发，失败不影响本地）。阈值/号码/冷却时间全宏集中；多传感器 	emp>T_t || smog>S_t || flame>F_t 任一触发，报警时短信正文带触发源与数值。
+
+## 15. 参数掉电保存（内部 FLASH「SRAM 影子 + 整页保存」模式，江协 15-1 实测）
+
+**架构**：运行时只读写 SRAM 影子数组；显式调用 `Store_Save()` 时整页擦除+重写。最简单可靠的掉电保存（无追加结构、无掉电窗口——代价是每次保存耗 1 次擦写寿命，10K 次额定，需按保存频率限频）。
+
+```c
+#define STORE_START_ADDRESS  0x0800FC00   // 参数页：C8T6(20K) 末页；HD(2K/页)选末页 0x0807F800 等
+#define STORE_COUNT          512           // 半字数，1KB 页 = 512 半字
+
+uint16_t Store_Data[STORE_COUNT];           // SRAM 影子，[0] 固定为标志位
+
+void Store_Init(void)
+{
+    if (MyFLASH_ReadHalfWord(STORE_START_ADDRESS) != 0xA5A5)   // 首次使用（空白读 0xFFFF）
+    {
+        MyFLASH_ErasePage(STORE_START_ADDRESS);
+        MyFLASH_ProgramHalfWord(STORE_START_ADDRESS, 0xA5A5);  // 魔数区分「从未初始化」与「初始化后清零」
+        for (uint16_t i = 1; i < STORE_COUNT; i++)
+            MyFLASH_ProgramHalfWord(STORE_START_ADDRESS + i*2, 0x0000);
+    }
+    for (uint16_t i = 0; i < STORE_COUNT; i++)                  // 整页载回 SRAM
+        Store_Data[i] = MyFLASH_ReadHalfWord(STORE_START_ADDRESS + i*2);
+}
+
+void Store_Save(void)
+{
+    MyFLASH_ErasePage(STORE_START_ADDRESS);                     // 整页擦
+    for (uint16_t i = 0; i < STORE_COUNT; i++)                  // 整页写（含标志位）
+        MyFLASH_ProgramHalfWord(STORE_START_ADDRESS + i*2, Store_Data[i]);
+}
+```
+
+要点：
+
+1. **0xA5A5 首用魔数**：擦除态是 0xFFFF，任意值都可能随机命中；专用魔数可靠区分三种状态（空白/已初始化/已清零——清零后魔数保留，数据为 0）。
+2. **IROM 必须给参数页让路**：Keil Target→IROM1 长度从 0x10000（64K）缩到参数页起点（C8T6 末页方案=0x4C00）。链接器不知道参数页存在，不缩的话代码长过 19KB 会静默链进参数页、烧录覆盖参数，**无任何警告**（江协原工程就没缩，代码 ~5KB 时侥幸无害——坑 67）。
+3. **保存触发限频**：按键触发/关机前/定时（如 1 分钟一次且数据有变）三选一，不要在循环里高频 Save——每次 = 1 页擦写，10K 次寿命。
+4. **多页参数或更严寿命需求** → 换「追加式磨损均衡」（顺序写记录、写满才擦一页，见 heater-temp-control-spl.md storage.c 实例与坑 57 掉电窗口讨论）；本模式适合 ≤1~2 页、保存次数可控的参数组。
+5. 校验升级：数据段加简单和/CRC 半字，Init 时校验失败回默认值（本教学版未加，产品建议加）。
+

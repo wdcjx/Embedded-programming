@@ -2,6 +2,16 @@
 
 > 使用中持续完善。完成打 [x]，进行中打 [~]，未开始留 [ ]。
 
+## v0.9.7 内部 FLASH 读写+芯片 ID 沉淀（不发版：仅代码上库，无 tag/Release）
+
+- 来源：D:\stm32project\程序源码\程序源码\STM32Project-有注释版\15-1 读写内部FLASH 与 15-2 读取芯片ID（江协教学例程，SPL F103C8T6）：首个内部 FLASH 编程 + 系统存储区只读寄存器样本。体量小（用户代码 104 行），按知识增量并入两份既有文档，不新建 reference
+- stm32-stdperiph-api.md 新增 §13「内部 FLASH 读写 + 唯一 ID」：读=指针直接访问无需解锁；写=Unlock（KEYR 0x45670123/0xCDEF89AB）→ErasePage（中密度 1KB/页、HD 2KB/页）→ProgramHalfWord（F1 最小单位半字）→Lock；系统存储区只读寄存器表（0x1FFFF7E0 容量 KB 半字/0x1FFFF7E8 96 位 UID=Wafer X+Y+批次 3 字）；F1=0x1FFFF7E8/F4=0x1FFF7A10/F0=0x1FFFF7AC 家族地址差异
+- peripheral-recipes.md 新增 §15「参数掉电保存（SRAM 影子 + 整页保存）」：完整可抄骨架（Store_Data 影子数组/0xA5A5 首用魔数/Init 整页载回/Save 整页擦写）+ 五要点（魔数三态区分/IROM 缩到参数页起点/保存限频 10K 擦写寿命/多页需求换追加式磨损均衡→heater 对照/CRC 校验升级建议）
+- known-pitfalls.md 新增坑 67（自定义 Flash 参数页选末页但 Keil IROM1 声明 64K 全量没缩：链接器不认识参数页，代码长过 19KB 静默链进参数页覆盖数据无警告——江协原工程实测隐患，代码 ~5KB 侥幸无害；规矩=IROM1 长度缩到存储区起点 C8T6 末页方案 0x4C00，生成参数保存代码时同步给出 IROM 修改指令）
+- validator：4 用户文件（MyFLASH/Store/main×2）全 PASS 0/0 零违规（纯轮询无 ISR，预期内），本轮无规则改动
+- 新能力声明：参数掉电保存（内部 FLASH SRAM 影子模式）与设备唯一 ID/容量读取生成基准；教学例程级小体量知识并入既有文档的模式首例
+- 注：本轮仅 commit+push 上库，不打 tag 不发 Release（用户要求不发行公开版本）
+
 ## v0.9.6 OV-Watch 智能手表沉淀（不发版：仅代码上库，无 tag/Release）
 
 - 来源：D:\stm32project\OV-Watch-main（No-Chicken OV-Watch V2.4 开源智能手表，F411CEU6 UFQFPN48，CubeMX 6.9.2 + FW_F4 1.27.1 + MDK V5.32 + FreeRTOS CMSIS_V2 + LVGL 8.2，用户确认实测上板；三件套=IAP BootLoader + 主固件 + PC SDL 模拟器）：技能首个 F411 样本 + 首个 STOP 低功耗实测 + 首个 LVGL/智能手表 + 首个 IAP 双固件升级

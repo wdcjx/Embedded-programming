@@ -92,7 +92,7 @@
 | **低功耗与可穿戴** | F411 智能手表（LVGL 8.2+FreeRTOS CMSIS_V2，实测上板）：STOP 休眠全套（两级休眠/醒-查-再睡/RTOS 进 STOP 三件套 SuspendAll+关 TICKINT+外狗/醒后重配时钟）、外部看狗 GPIO 喂狗（IWDG 停不掉的替代）、主电源自锁+充电内阻压降补偿 11 段电池曲线、IAP 双固件升级（APP FLAG 掉电安全/Ymodem/跳转五件套/VTOR 与 IROM1 同步）、LVGL 自适应节拍+页面栈+HW_USE 硬件抽象（PC 模拟器同源）、ST7789 DMA flush+BSY 等待、传感器按页唤醒省电矩阵、抬腕/翻腕手势链 | ✅ OV-Watch 智能手表实测（v0.9.6） |
 | **FOC 电机控制** | SimpleFOC 算法 HAL 移植（F105+AS5600+相电流采样）：SVPWM 六扇区表与 0.577 调制比、上电校零流程（开环拖动→锁 3π/2→读零电角）、三环 PID 梯形积分+SysTick Ts、低通滤波、电流采样简化 Clarke、单位混乱实录（count/度/弧度）、25kHz 中心对齐互补 PWM 死区警示 | ✅ 4310 直驱工程实测（v0.9.5） |
 | **跨家族** | F103C8T6 默认；F407VET6 起步（168MHz 时钟树模板、TIM2/TIM5 32 位、F1→F4 差异对照、换轨清单、CoreScribe 移植工程）；F411CEU6 智能手表（HSI 100MHz 无晶振、STOP 低功耗、LVGL、IAP 双固件）；F7/H7/G0/G4/L4 无标准库，走 HAL 轨并声明未实测校对 | F407 机器人节点与 F411 智能手表均已上板（v0.9.5/v0.9.6），validator `--density f4` |
-| **工程纪律与静态检查** | `validate_generated.py`：时钟使能顺序、volatile/ISR 纪律、ISR 阻塞调用、等待超时、NVIC 分组、向量名、HAL 回调、RTOS API 误用——VIOLATION 清零才交付；坑清单 66 条（每条症状/原因/修法）；症状速查 14 条反查表；`__HAL_LOCK`/Mutex/临界区/栈堆精算/Cache+DMA 现场可靠性知识 | ✅ 6 个自测样本持续回归 |
+| **工程纪律与静态检查** | `validate_generated.py`：时钟使能顺序、volatile/ISR 纪律、ISR 阻塞调用、等待超时、NVIC 分组、向量名、HAL 回调、RTOS API 误用——VIOLATION 清零才交付；坑清单 67 条（每条症状/原因/修法）；症状速查 14 条反查表；`__HAL_LOCK`/Mutex/临界区/栈堆精算/Cache+DMA 现场可靠性知识 | ✅ 6 个自测样本持续回归 |
 
 ## 常见问题
 
@@ -127,7 +127,7 @@
 ## 反馈与社区
 
 - 问题/建议：[Issues](https://github.com/wdcjx/Embedded-programming/issues)——提问前先搜
-  [references/known-pitfalls.md](references/known-pitfalls.md)（66 条实测坑）与
+  [references/known-pitfalls.md](references/known-pitfalls.md)（67 条实测坑）与
   [references/symptom-quickref.md](references/symptom-quickref.md)（症状反查表）；
 - 经验交流/求助：[Discussions](https://github.com/wdcjx/Embedded-programming/discussions)；
 - 想沉淀自己的实测工程或增强 validator：规矩见 [CONTRIBUTING.md](CONTRIBUTING.md)。
@@ -146,8 +146,8 @@ embed/                                # 单一技能：快速生成 + 工程纪�
 ├── CONTRIBUTING.md                   # 贡献指南（反馈渠道/沉淀规矩/validator 回归要求）
 ├── .github/ISSUE_TEMPLATE/           # Issue 模板（问题反馈/工程沉淀建议）
 ├── references/
-│   ├── stm32-stdperiph-api.md        # 标准库 API 速查 + 密度宏/工程文件清单
-│   ├── peripheral-recipes.md         # 典型外设配方（点灯/串口/PWM/ADC/I2C/SPI…）
+│   ├── stm32-stdperiph-api.md        # 标准库 API 速查 + 密度宏/工程文件清单 + 内部 FLASH/UID（§13）
+│   ├── peripheral-recipes.md         # 典型外设配方（点灯/串口/PWM/ADC/I2C/SPI…）+ 参数掉电保存（§15）
 │   ├── freertos-spl-integration.md   # SPL+FreeRTOS 集成规则（向量接管/FromISR/内存预算）
 │   ├── oled-ssd1306.md               # OLED 0.96"（SSD1306）驱动知识（I2C/SPI 双版）
 │   ├── hal-basics.md                 # HAL 轨：CubeMX/句柄模型/SPL→HAL 对照/F1 坑/RTOS 铁律

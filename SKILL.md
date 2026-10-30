@@ -65,8 +65,8 @@ description: 嵌入式开发辅助技能：为 STM32 等单片机生成完整可
 
 | 文件 | 内容 |
 |---|---|
-| `references/stm32-stdperiph-api.md` | SPL API 速查 + 密度宏/启动文件/工程文件清单 |
-| `references/peripheral-recipes.md` | 典型外设完整配方（点灯/串口/PWM/ADC/I2C/SPI/看门狗…）+ 传感器/总线驱动模式小抄（软件 I2C/DS18B20/DS1302/OLED） |
+| `references/stm32-stdperiph-api.md` | SPL API 速查 + 密度宏/启动文件/工程文件清单 + 内部 FLASH 读写与 96 位 UID/容量寄存器地址（§13） |
+| `references/peripheral-recipes.md` | 典型外设完整配方（点灯/串口/PWM/ADC/I2C/SPI/看门狗…）+ 传感器/总线驱动模式小抄（软件 I2C/DS18B20/DS1302/OLED）+ 参数掉电保存 SRAM 影子整页保存模式（§15，含 IROM 预留） |
 | `references/freertos-spl-integration.md` | SPL+FreeRTOS 集成规则（文件清单/向量接管/FromISR/内存预算/Keil 集成 SOP） |
 | `references/oled-ssd1306.md` | OLED 0.96"（SSD1306）驱动：显存模型/初始化命令表/江协风格 API 约定/软件 I2C 与 SPI 移植/常见坑 |
 | `references/fsmc-lcd-ili9341.md` | FSMC 驱 TFT-LCD（ILI9341/9328，HD/XL）：地址译码原理/引脚表/时序/窗口绘图/R-B 交换/坑（实验九实测） |
