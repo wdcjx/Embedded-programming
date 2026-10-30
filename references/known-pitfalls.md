@@ -167,3 +167,7 @@
 68. **串口 ISR 里调刷屏函数：软 I2C OLED 全屏刷新几十 ms 级，跨文件调用链 validator 也看不见（桌面宠物 A 版实测，B 版官方整改对照）**：A 版 USART1/USART3 的 RXNE 中断里命令解析后直接调 `Face_Config()`→`OLED_Clear+ShowImage+Update`——软 I2C 全屏 1KB 实测几十 ms 起步，整个跑在中断里：期间另一串口数据（DR 单字节无 FIFO）必丢、TIM 低优先级任务全部堆积。validator 单文件分析只见 ISR→extern 函数调用，看不见 OLED_Update 在调用链尾端，静态检查盲区。**同作者 B 版已整改**：ISR 只存 `RxData_Blue`+调纯变量赋值的命令表函数，刷屏归主循环——这就是"ISR 只置标志"的标准整改路径。规矩：ISR 内允许调的函数=只写共享变量的；任何会走到 I2C/SPI 传输、Delay、长循环的函数一律主循环消费标志；跨文件调用链是静态检查天然盲区，评审时人工追 ISR 的完整调用栈。
 
 69. **多来源同协议的命令表复制 N 份维护：贯穿 bug 也复制 N 份（桌面宠物 0x39 实测）**：A 版语音/蓝牙两个串口 ISR 各复制一份 190 行 if-else 命令表；B 版统一成 `PetAction_Judgmengt(Serial_type)` 但函数体内仍是 switch(语音)/switch(蓝牙) 两份复制——结果 case 0x39（摇摆提速）缺 break 贯穿到 0x40（摇尾巴开关）的 bug 在两份里一模一样：调提速会顺带翻转尾巴开关。复制粘贴 bug 会随复制体扩散（坑 47 家族第三例，且是"复制的复制"）。规矩：**同协议多来源只写一份命令表**（入口函数参数区分来源，来源差异点仅限个别标志位如本例 Sustainedmove）；复制出的第二份永远要 diff 校对每个 case 的 break；命令表用 switch 时收尾加 default:break 兜底。
+
+70. **CMake 模板硬浮点默认注释未开**：F4 有 FPU 却跑软浮点（Linno 实测——-mfloat-abi=hard -mfpu=fpv4-sp-d16 被注释，椭圆菜单 PD 控制器每毫秒软浮点运算）。后果=浮点代码 Flash 变胖+性能白亏，UI 余量大时不卡所以没人发现。规矩：CMake/gcc 工程交付清单必查 FPU 编译选项；RTOS 加 FPU 上下文栈（configUSE_TASK_FPU_SUPPORT）。对照：Keil 工程勾 FPU 后编译器自动带，命令行工具链没人替你勾。
+
+71. **HAL 弱回调=中断上下文的心智模型**：HAL_CAN_RxFifo1MsgPendingCallback/HAL_UARTEx_RxEventCallback/HAL_I2C_AddrCallback/HAL_SPI_TxRxCpltCallback 等全部在对应 IRQ 里执行，volatile/禁阻塞/禁刷屏纪律与手写 ISR 完全一致（Linno 30 处回调写非 volatile 监视缓冲是反面教材——M4 对齐访问原子所以能用，数据+长度多变量组无快照）。validator 已把 HAL_*Callback 当 ISR 扫描；手写代码时把每个用到的弱回调当一段隐形 ISR 审查。

@@ -92,7 +92,8 @@
 | **低功耗与可穿戴** | F411 智能手表（LVGL 8.2+FreeRTOS CMSIS_V2，实测上板）：STOP 休眠全套（两级休眠/醒-查-再睡/RTOS 进 STOP 三件套 SuspendAll+关 TICKINT+外狗/醒后重配时钟）、外部看狗 GPIO 喂狗（IWDG 停不掉的替代）、主电源自锁+充电内阻压降补偿 11 段电池曲线、IAP 双固件升级（APP FLAG 掉电安全/Ymodem/跳转五件套/VTOR 与 IROM1 同步）、LVGL 自适应节拍+页面栈+HW_USE 硬件抽象（PC 模拟器同源）、ST7789 DMA flush+BSY 等待、传感器按页唤醒省电矩阵、抬腕/翻腕手势链 | ✅ OV-Watch 智能手表实测（v0.9.6） |
 | **FOC 电机控制** | SimpleFOC 算法 HAL 移植（F105+AS5600+相电流采样）：SVPWM 六扇区表与 0.577 调制比、上电校零流程（开环拖动→锁 3π/2→读零电角）、三环 PID 梯形积分+SysTick Ts、低通滤波、电流采样简化 Clarke、单位混乱实录（count/度/弧度）、25kHz 中心对齐互补 PWM 死区警示 | ✅ 4310 直驱工程实测（v0.9.5） |
 | **跨家族** | F103C8T6 默认；F407VET6 起步（168MHz 时钟树模板、TIM2/TIM5 32 位、F1→F4 差异对照、换轨清单、CoreScribe 移植工程）；F411CEU6 智能手表（HSI 100MHz 无晶振、STOP 低功耗、LVGL、IAP 双固件）；F7/H7/G0/G4/L4 无标准库，走 HAL 轨并声明未实测校对 | F407 机器人节点与 F411 智能手表均已上板（v0.9.5/v0.9.6），validator `--density f4` |
-| **工程纪律与静态检查** | `validate_generated.py`：时钟使能顺序、volatile/ISR 纪律、ISR 阻塞调用、等待超时、NVIC 分组、向量名、HAL 回调、RTOS API 误用——VIOLATION 清零才交付；坑清单 69 条（每条症状/原因/修法）；症状速查 14 条反查表；`__HAL_LOCK`/Mutex/临界区/栈堆精算/Cache+DMA 现场可靠性知识 | ✅ 6 个自测样本持续回归 |
+| **多协议总线工具** | 多协议总线分析仪（F407VET6 HAL+LVGL 实测上板，**首个 CMake/CLion+arm-none-eabi-gcc 样本**）：9 端口（3 UART 含 RS485/2 CAN/2 SPI/2 I2C）监视+网桥+信号源探针三形态、HAL 弱回调=ISR 的 update 标志消费数据流、双时基（SysTick=HAL+TIM=lv_tick）、自研 APP 框架+椭圆轨道 PD 缓动菜单、CMake 工程四件事（.ld/GLOB_RECURSE/objcopy/OpenOCD）、FPU 编译选项必查 | ✅ Linno 总线分析仪实测（v0.10.0） |
+| **工程纪律与静态检查** | `validate_generated.py`：时钟使能顺序、volatile/ISR 纪律、ISR 阻塞调用、等待超时、NVIC 分组、向量名、HAL 回调、RTOS API 误用——VIOLATION 清零才交付；坑清单 71 条（每条症状/原因/修法）；症状速查 14 条反查表；`__HAL_LOCK`/Mutex/临界区/栈堆精算/Cache+DMA 现场可靠性知识 | ✅ 6 个自测样本持续回归 |
 
 ## 常见问题
 
@@ -127,7 +128,7 @@
 ## 反馈与社区
 
 - 问题/建议：[Issues](https://github.com/wdcjx/Embedded-programming/issues)——提问前先搜
-  [references/known-pitfalls.md](references/known-pitfalls.md)（69 条实测坑）与
+  [references/known-pitfalls.md](references/known-pitfalls.md)（71 条实测坑）与
   [references/symptom-quickref.md](references/symptom-quickref.md)（症状反查表）；
 - 经验交流/求助：[Discussions](https://github.com/wdcjx/Embedded-programming/discussions)；
 - 想沉淀自己的实测工程或增强 validator：规矩见 [CONTRIBUTING.md](CONTRIBUTING.md)。
@@ -168,6 +169,7 @@ embed/                                # 单一技能：快速生成 + 工程纪�
 │   ├── multi-node-robot-rtos-hal.md   # 多节点机器人（F103/F105/F407 HAL+FreeRTOS 实测）：NRF 广播/20B 帧协议/全向轮运动学/任务模板通病
 │   ├── foc-motor-hal.md               # FOC 无刷直驱（F105+AS5600 HAL 实测）：SVPWM/校零/三环 PID/电流采样/单位混乱实录
   ├── smartwatch-lvgl-lp-hal.md      # 智能手表（F411 HAL+FreeRTOS+LVGL 实测上板）：STOP 低功耗三件套/IAP 双固件/LVGL 集成/传感器按页唤醒
+  ├── bus-analyzer-lvgl-hal.md      # 多协议总线分析仪（F407 HAL+LVGL+CMake 实测上板）：9 端口监视/网桥/HAL 回调数据流/双时基/CMake 迁移
 │   ├── spl-peripheral-checklist.md   # 外设初始化顺序清单（纪律）
 │   ├── isr-and-concurrency-rules.md  # ISR/并发/volatile/临界区规则（纪律）
 │   └── known-pitfalls.md             # 已知坑清单（纪律）

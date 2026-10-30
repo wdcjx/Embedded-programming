@@ -87,6 +87,7 @@ F4_VECTORS = CORE_HANDLERS | {
     "USART6_IRQHandler", "UART4_IRQHandler", "UART5_IRQHandler",
     "EXTI15_10_IRQHandler", "RTC_Alarm_IRQHandler",
     "OTG_FS_WKUP_IRQHandler", "OTG_FS_IRQHandler",
+    "SDIO_IRQHandler",
     "TIM5_IRQHandler", "TIM6_DAC_IRQHandler", "TIM7_IRQHandler",
     "TIM8_BRK_TIM12_IRQHandler", "TIM8_UP_TIM13_IRQHandler",
     "TIM8_TRG_COM_TIM14_IRQHandler", "TIM8_CC_IRQHandler",
@@ -377,6 +378,14 @@ def analyze(path, text, vectors, findings, irq_owner):
     # 之类在别处展开的宏调用（形如 XXX_CLK()/XXX_CLOCK_EN()）。单文件分析看不见宏体，
     # 不能当确凿证据清零，只把 VIOLATION 降为 WARNING 提示人工核对宏定义。
     macro_clock = re.search(r"\b[A-Z][A-Z0-9_]*CLK[A-Z0-9_]*\s*\(\s*\)", text)
+    # CubeMX 业务层文件特征：include 生成层外设头、调用 MX_..._Init，
+    # 或以 HAL_..._Init(&hxxx) 外部句柄风格重配（句柄在生成层创建）。
+    # 业务文件里这类 Init 通常是"按用户配置重配外设"（重配波特率/模式等），
+    # 时钟由生成文件 MX_..._Init/MspInit 开启——单文件分析无法核实，降 WARNING；
+    # SPL 轨与本地变量/裸指针初始化的纯业务文件（如 dw1000.c）仍判 VIOLATION。
+    cube_ctx = bool(re.search(
+        r"\bMX_\w+_Init\s*\(|#\s*include\s+\"(?:gpio|i2c|spi|usart|can|adc|tim)\.h\""
+        r"|\bHAL_\w+_Init\s*\(\s*&\s*h\w+", text))
     for init_pat, label, clk_pat in PERIPHERALS:
         inits = list(re.finditer(init_pat, text))
         if not inits:
@@ -386,6 +395,11 @@ def analyze(path, text, vectors, findings, irq_owner):
                 add(line_of(text, inits[0].start()), WARN,
                     f"检测到 {label} 初始化，本文件时钟使能走宏封装（{macro_clock.group(0).strip()}）："
                     "宏体在头文件/别处，请人工核对其中确含 RCC 时钟使能")
+            elif cube_ctx and re.match(r"\s*HAL_", inits[0].group(0)):
+                add(line_of(text, inits[0].start()), WARN,
+                    f"业务层文件重配 {label}（HAL_..._Init）且本文件无时钟使能："
+                    "时钟应由生成层 MX_..._Init/MspInit 开启（本文件引用了生成层上下文），"
+                    "请核对工程初始化链路完整")
             else:
                 add(line_of(text, inits[0].start()), VIOL,
                     f"检测到 {label} 初始化，但本文件未见任何 RCC_...PeriphClockCmd / "

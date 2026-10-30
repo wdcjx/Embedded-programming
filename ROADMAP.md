@@ -2,6 +2,15 @@
 
 > 使用中持续完善。完成打 [x]，进行中打 [~]，未开始留 [ ]。
 
+## v0.10.0 Linno 多协议总线分析仪沉淀（**发版：第二个公开版本，tag v0.10.0 + Release**）
+
+- 来源：D:\stm32project\Linno\Linno（用户提供的 F407VET6 手持多协议总线分析仪，实测上板）：9 通信端口（3×UART 含 RS485/2×CAN/2×SPI/2×I2C）监视 + 任意端口间网桥 + DAC/PWM/ADC 信号源探针 + USB CDC（预留）+ SD 卡 FATFS 配置存档；**技能库首个 CMake/CLion+arm-none-eabi-gcc 工程样本**（前 21 样本全是 Keil/IAR）、首个 F407 大资源 LVGL 产品级应用（自研 APP 框架+椭圆轨道菜单+1.2MB 全字库源文件）
+- 新增 references/bus-analyzer-lvgl-hal.md（10 节）：工程结构与 CMake 构建链四件事（.ld 链接脚本/GLOB_RECURSE 收源需重跑 cmake/POST_BUILD objcopy/OpenOCD 调试）/硬件资源表（.ioc 实测引脚：FSMC 16 位 LCD A16 当 RS、SDIO、双 CAN、SPI1/SPI3、I2C1/2、ADC 双通道扫描 DMA CIRCULAR、DAC+TIM1_CH3/TIM2_CH2 探针）/架构（HAL 弱回调=中断上下文的 update 标志消费模式、双时基 SysTick=HAL+TIM7=lv_tick、General_Buffer 2048 共享）/自研 GUI 框架（APP 函数指针+lv_scr_load_anim 切换、软键盘三态、状态栏 5 秒自删、**椭圆轨道 3D 轮播=Ellipse_Track_Map[1000] 预生成+PD 控制器惯性滚动 Kp=0.2/Kd=0.01+lv_img_set_zoom 近大远小**）/Monitor 监视引擎（selected 句柄选择器+LV_EVENT_DELETE 释放 lv_timer）/Transfer 九端口网桥（使能矩阵广播+if(0&&) 死代码开关）/Probe（DAC/PWM/长按连调三态交互）/Setting（FATFS 二进制结构体存 0:setting.txt+假休眠）/bug 清单 7 条（**FPU 编译选项被注释全软浮点**/UI 命名与句柄错位 SPI1=hspi3/USB CDC 空挂等）/validator 记录/生成检查单 7 条（map 文件看 .rodata 实占，源文件体积≠二进制）
+- known-pitfalls.md 新增坑 70（CMake 模板硬浮点默认注释未开：F4 有 FPU 跑软浮点，UI 余量大不卡所以无人发现；CMake/gcc 交付清单必查 -mfloat-abi=hard -mfpu=fpv4-sp-d16+RTOS FPU 栈）/71（HAL 弱回调=中断上下文心智模型：全部在对应 IRQ 里执行，volatile/禁阻塞纪律与手写 ISR 一致，30 处回调写非 volatile 是反面教材）；总 71 条
+- validator 两处增强：F4_VECTORS 补 SDIO_IRQHandler（F4 系真向量，F7 起才叫 SDMMC——it.c 误报修复）；规则 6 新增 cube_ctx 降级判据（MX_ 调用/include 生成层外设头/HAL_..._Init(&hxxx) 外部句柄风格三选一→业务重配文件的时钟 VIOLATION 降 WARNING 人工核对；SPL 轨与裸指针初始化保持 VIOLATION，dw1000.c 实测不变）。Linno 34V→30V3W（30 条 HAL 回调非 volatile 全真实）；回归 bad_sample 10V1W/模板 PASS/dw1000 1V 全不变。统计脚本教训：(\d) 只抓一位数，批量统计永远 (\d+)
+- SKILL.md 资源表 smartwatch 行后加 bus-analyzer-lvgl-hal.md 行；README 能力表加「多协议总线工具」行+坑 69→71 两处+文件树加行
+- **发版**：tag v0.10.0 + GitHub Release（第二个公开版本；版本号跨 0.9.x→0.10.0：里程碑=22 篇 references/71 坑/首个 CMake 样本/双构建体系 Keil·IAR·CMake 齐）
+
 ## v0.9.8 桌面宠物（四足舵机机器人）沉淀（不发版：仅代码上库，无 tag/Release）
 
 - 来源：D:\stm32project\桌宠代码\适配1.0版本电路板的代码\（Sngels_wyh 桌面宠物，oshwhub.com/sngelswyh/stm32-smart-desktop-pet 开源，STM32F103C8T6 SPL Keil）：**同工程两版对照读码**——A=2025.2.17 版（用户指定主体）、B=2026.3.23 适配国产芯片版（演进版）；首个四足舵机机器人样本 + 首个"同作者跨版本官方整改对照"样本
