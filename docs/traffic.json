@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
   "clones": {
-    "total": 421,
-    "uniques": 318
+    "total": 511,
+    "uniques": 372
   },
   "views": {
-    "total": 409,
-    "uniques": 156
+    "total": 464,
+    "uniques": 177
   },
-  "days": 14,
+  "days": 15,
   "since": "2026-10-15",
-  "updated": "2026-10-28"
+  "updated": "2026-10-29"
 }
