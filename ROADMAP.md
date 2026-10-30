@@ -2,6 +2,15 @@
 
 > 使用中持续完善。完成打 [x]，进行中打 [~]，未开始留 [ ]。
 
+## v0.10.1 智能防疫门禁沉淀（不发版：仅代码上库，无 tag/Release）
+
+- 来源：D:\stm32project\课设-智能防疫门禁系统\（用户提供课设工程，STM32F103C6Tx + CubeMX HAL + Keil V5.32，CubeMX 6.4.0 + FW_F1 1.8.4）：**技能库最小目标芯片样本**（F103C6：32KB Flash/10KB RAM）+ **MLX90614 非接触红外测温样本** + 课设级系统集成范例
+- 新增 references/gate-access-mlx90614-hal.md（7 节）：门禁判定链三分支（<33 无效驻留 / 正常放行+人数+舵机 135°开门 3s / ≥37.4 异常死循环语音+蜂鸣直到 k1 人工解除）/硬件资源表（.ioc 声明 vs 代码实际两列对照，busy PB2↔PB1 与 data1 PB11 漂移标 ⚠）/MLX90614 SMBus 软件驱动全解（Read Word 协议帧、PEC CRC-8 0x107 移位除法、temp=raw×0.02−273.15、PWM→SMBus 切换 SCL>1.44ms、睡眠退出 SDA 33ms+250ms、NACK/PEC 重试 10 次+goto 收尾；位时序 0.25µs/单位低于 SMBus 规范但实测容忍、延时常量按 72MHz 烧死）/执行器层（舵机 CCR=angle/9+5、TIM2 500ms 报警蜂鸣节拍、一线串口语音半成品实录：busy 死等无超时+data/data1 双线混乱）/ST7735 QDtech 显示层（128×160 USE_HORIZONTAL=2+GUI_DrawFont16 逐字取模）/bug 清单 8 条/validator 记录+生成检查单 7 条
+- known-pitfalls.md 新增坑 72（.ioc 与生成代码漂移：busy=PB2(.ioc) vs PB1(代码)、data1=PB11 无中生有——引脚结论必须 .ioc↔main.h↔gpio.c 三处交叉验证以 gpio.c 为准，hal-basics §2 的必要补充）/73（协议校验字段与实际发送字段不一致：MLX90614 read_ram 的 PEC 缓冲 buf[4]=EEPROM|cmd 而交易发 RAM|cmd→PEC 恒失败→10 次重试全耗尽→照样返回旧数据；双反模式=校验缓冲须与真实字节逐一 diff+重试耗尽必须报错）；总 73 条
+- validator（--density md，LD 向量与 md 表兼容）：11 用户文件 2 VIOLATION（main.c error_flag 非 volatile：EXTI/TIM2 回调写+主循环 while 读）全真实零误报
+- SKILL.md 资源表 bus-analyzer 行后加 gate-access-mlx90614-hal.md 行；README 能力表加「门禁与人体测温」行+坑 71→73 两处+文件树加行
+- 注：本轮仅 commit+push 上库，不打 tag 不发 Release（用户要求不发行公开版本）
+
 ## v0.10.0 Linno 多协议总线分析仪沉淀（**发版：第二个公开版本，tag v0.10.0 + Release**）
 
 - 来源：D:\stm32project\Linno\Linno（用户提供的 F407VET6 手持多协议总线分析仪，实测上板）：9 通信端口（3×UART 含 RS485/2×CAN/2×SPI/2×I2C）监视 + 任意端口间网桥 + DAC/PWM/ADC 信号源探针 + USB CDC（预留）+ SD 卡 FATFS 配置存档；**技能库首个 CMake/CLion+arm-none-eabi-gcc 工程样本**（前 21 样本全是 Keil/IAR）、首个 F407 大资源 LVGL 产品级应用（自研 APP 框架+椭圆轨道菜单+1.2MB 全字库源文件）

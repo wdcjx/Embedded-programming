@@ -171,3 +171,7 @@
 70. **CMake 模板硬浮点默认注释未开**：F4 有 FPU 却跑软浮点（Linno 实测——-mfloat-abi=hard -mfpu=fpv4-sp-d16 被注释，椭圆菜单 PD 控制器每毫秒软浮点运算）。后果=浮点代码 Flash 变胖+性能白亏，UI 余量大时不卡所以没人发现。规矩：CMake/gcc 工程交付清单必查 FPU 编译选项；RTOS 加 FPU 上下文栈（configUSE_TASK_FPU_SUPPORT）。对照：Keil 工程勾 FPU 后编译器自动带，命令行工具链没人替你勾。
 
 71. **HAL 弱回调=中断上下文的心智模型**：HAL_CAN_RxFifo1MsgPendingCallback/HAL_UARTEx_RxEventCallback/HAL_I2C_AddrCallback/HAL_SPI_TxRxCpltCallback 等全部在对应 IRQ 里执行，volatile/禁阻塞/禁刷屏纪律与手写 ISR 完全一致（Linno 30 处回调写非 volatile 监视缓冲是反面教材——M4 对齐访问原子所以能用，数据+长度多变量组无快照）。validator 已把 HAL_*Callback 当 ISR 扫描；手写代码时把每个用到的弱回调当一段隐形 ISR 审查。
+
+72. **.ioc 与生成代码漂移：按 .ioc 推引脚会接错线（防疫门禁实测）**：该工程 .ioc 写 busy=PB2 且无 PB11，但 main.h 生成区 define 与 gpio.c 实际初始化是 busy=PB1、data1=PB11——用户在 CubeMX 里改过引脚后没重新生成（或只生成了部分文件），.ioc 记录的是"新意图"而代码跑的是"旧现实"，两者对不上且没有任何警告。凡是"改造既有 CubeMX 工程"，**引脚结论必须 .ioc ↔ main.h 的 define ↔ gpio.c 初始化三处交叉验证，以 gpio.c 为准**；只读 .ioc 就出接线表必翻车（hal-basics §2 规矩的必要补充）。生成代码交付时同理：改了 .ioc 就完整重新生成，不要手改生成区。
+
+73. **协议校验字段与实际发送字段不一致：校验永远失败但照样返回数据（MLX90614 PEC 实测）**：`mlx90614_read_ram()` 的 PEC 计算缓冲 `buf[4]=EEPROM|cmd`（0x20|cmd）但交易实际发送的是 `RAM|cmd`（0x00|cmd）——命令前缀填错，PEC 恒不匹配 → 10 次重试全部耗尽（每次读温度 = 10 连发完整 SMBus 交易，时序暗损 10 倍）→ **重试耗尽后照样返回最后一次数据，错误不影响返回值**。双反模式：①校验参与的缓冲必须与实际发送/接收字节逐一 diff（从 read_eeprom 复制到 read_ram 忘改一个字段，坑 47 复制家族变体）；②重试耗尽必须向上报错（返回错误码/置故障标志），「宽容地返回旧数据」让校验彻底沦为性能税。规矩：写任何 CRC/PEC/校验和时，用真实收发的原始字节构造计算缓冲，禁止手抄第二份字段列表。
