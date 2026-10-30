@@ -32,7 +32,7 @@ jobs:
           REPO: ${{ github.repository }}
         run: |
           python3 - <<'EOF'
-          import csv, json, os, urllib.request
+          import csv, json, os, urllib.error, urllib.request
 
           repo = os.environ['REPO']
           tok = os.environ['GH_TOKEN']
@@ -45,8 +45,16 @@ jobs:
                       'Accept': 'application/vnd.github+json',
                       'User-Agent': 'traffic-record',
                   })
-              with urllib.request.urlopen(req) as r:
-                  return json.load(r)
+              try:
+                  with urllib.request.urlopen(req) as r:
+                      return json.load(r)
+              except urllib.error.HTTPError as e:
+                  body = e.read().decode('utf-8', 'replace')
+                  print(f'TRAFFIC-API {path} -> HTTP {e.code}; '
+                        f'x-ratelimit-limit={e.headers.get("x-ratelimit-limit")} '
+                        f'remaining={e.headers.get("x-ratelimit-remaining")}; '
+                        f'token_len={len(tok)}; body: {body}', flush=True)
+                  raise
 
           data = {}
           for e in get('clones').get('clones', []):
