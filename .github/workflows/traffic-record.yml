@@ -3,9 +3,11 @@ name: Traffic Record
 # 每天记录仓库 clones/views 数据到 traffic_log.csv
 # - GitHub Traffic API 只保留 14 天，必须每天落盘
 # - cron 为 UTC：16:00 UTC = 北京时间 00:00
-# - 使用 workflow 自带 GITHUB_TOKEN（无需手动配置 PAT）；
-#   fork 者没有 secrets，且下方 repository 守卫阻止误跑
-# - GITHUB_TOKEN 的 push 不会触发其他 workflow（GitHub 防递归设计）
+# - Traffic API 拒绝 workflow 自带 GITHUB_TOKEN（"Resource not accessible
+#   by integration"，实测 403，permissions: contents: write 也无效），
+#   必须用 PAT 存入仓库 secret TRAFFIC_PAT（Settings → Secrets and
+#   variables → Actions）。fork 者没有 secrets，守卫也会阻止误跑
+# - 下方 git push 仍用 GITHUB_TOKEN（contents: write 够用，不触发其他 workflow）
 
 on:
   schedule:
@@ -28,14 +30,22 @@ jobs:
 
       - name: Fetch traffic and merge into traffic_log.csv
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.TRAFFIC_PAT }}
           REPO: ${{ github.repository }}
         run: |
           python3 - <<'EOF'
-          import csv, json, os, urllib.error, urllib.request
+          import csv, json, os, sys, urllib.error, urllib.request
 
           repo = os.environ['REPO']
-          tok = os.environ['GH_TOKEN']
+          tok = os.environ.get('GH_TOKEN', '')
+          if len(tok) < 20:
+              print('FATAL: repo secret TRAFFIC_PAT is missing. The /traffic '
+                    'endpoints reject the workflow GITHUB_TOKEN (403 "Resource '
+                    'not accessible by integration"). Create a PAT (classic '
+                    '"repo" scope, or fine-grained Contents: Read and write on '
+                    'this repo only) and add it as secret TRAFFIC_PAT under '
+                    'Settings -> Secrets and variables -> Actions.', flush=True)
+              sys.exit(1)
 
           def get(path):
               req = urllib.request.Request(
