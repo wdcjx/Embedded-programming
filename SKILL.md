@@ -89,6 +89,7 @@ description: 嵌入式开发辅助技能：为 STM32 等单片机生成完整可
 | `references/bus-analyzer-lvgl-hal.md` | 多协议总线分析仪（F407VET6 HAL+LVGL 实测上板，**首个 CMake/CLion 样本**）：9 端口监视/网桥/探针三形态、HAL 弱回调=ISR 数据流（update 标志消费模式）、双时基（SysTick=HAL+TIM=lv_tick）、自研 APP 框架+椭圆轨道 PD 缓动菜单、CMake 迁移四件事、FPU 未开软浮点坑、validator 时钟规则 cube_ctx 降级判据 |
 | `references/gate-access-mlx90614-hal.md` | 智能防疫门禁（F103C6Tx HAL，**技能库最小目标芯片 32K/10K**）：MLX90614 SMBus 软件驱动全解（协议帧/PEC CRC-8 0x107/温度公式 0.02K-273.15/PWM 模式切换/睡眠退出）、门禁判定链三分支+人工解除、舵机 CCR=angle/9+5、.ioc 与代码引脚漂移实例、PEC 前缀 bug、课设级集成与生成检查单 7 条 |
 | `references/rocketpi-rtos-ports.md` | 同板四 RTOS 移植对比（F401RE 文件级，ThreadX/Zephyr 首见）：ThreadX×HAL 集成 SOP（_tx_initialize_low_level 逐行/NVIC 0xFF-0xFF-0x40/it.c 三改/抢占阈值）/Zephyr HWMv2 板级五件套+dts 声明速查（mipi-dbi/hc-sr04/esp-at WiFi offload/MCUboot 分区）/RT-Thread Studio 结构/FreeRTOS 三形态/四轨时钟不统一实录/west build 命令 |
+| `references/industrial-comms-modbus-can-hal.md` | 工业通信与计量（FreeModbus RTU/CAN/RS485/HLW8110，文件级，Modbus+CAN 首见）：FreeModbus BARE 移植四 port 文件职责与三件套契约（eMBInit/Enable/Poll+寄存器数组界面）/CAN 位时序公式+F1 上拉输入与 USB 共用向量+过滤器组态+邮箱收发/HLW8110 配电单元（Modbus 参数 EEPROM 化+VTOR=0x10000 IAP 从机+四串口分工）/RC522 流程与 osDelay 宏适配/WS2812B PWM+DMA 双缓冲乒乓 99 行模板/仓库不完整性实录/生成检查单 7 条 |
 | `references/symptom-quickref.md` | 症状速查：死机/挂死/数据乱等现场表现 → 根因反查表 + 三条排查原则 |
 | `references/spl-peripheral-checklist.md` | 各外设初始化顺序清单与强制项（纪律） |
 | `references/isr-and-concurrency-rules.md` | ISR 模板、volatile/原子性/临界区规则（纪律） |

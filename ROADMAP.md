@@ -2,6 +2,15 @@
 
 > 使用中持续完善。完成打 [x]，进行中打 [~]，未开始留 [ ]。
 
+## v0.10.3 arm32_open 工业通信合集沉淀（不发版：仅代码上库，无 tag/Release）
+
+- 来源：D:\stm32project\arm32_open-master\（26 子工程大合集，F103RC/C8+F407+MM32F3273 全 HAL）：**技能库首个 FreeModbus 样本 + 首个 CAN 样本 + 首个 HLW8110 计量样本 + 首个 WS2812B 完整驱动样本**
+- 新增 references/industrial-comms-modbus-can-hal.md（10 节）：合集总览（26 子工程价值评级表）/FreeModbus RTU 从机移植（BARE 四 port 文件职责、三件套契约 eMBInit/Enable/Poll、portserial 逐行：RXNE/TXE 中断开关=协议栈驱动+9B 校验映射+DR 直写+485 方向钩子空置、porttimer：PSC=3599→50µs 粒度+清计数重使能、it.c 双 My_Callback 接线先于 HAL handler、port.c 四类寄存器 demo 大端装填边界检查可当模板）/CAN 收发（500kbps 位时序计算式、F1 收脚上拉输入特有、USB_LP_CAN1_RX0 共用向量 20、过滤器全通过组态、FIFO0 弱回调+GetRxMessage、邮箱 AddTxMessage、AutoRetransmission=DISABLE 语义警示）/HLW8110 配电单元架构实录（VTOR=0x10000 IAP 从机、四串口分工：USART1=Modbus/USART2=9B 偶校验计量/UART4=DMA CIRCULAR、Modbus 从机地址/波特率/校验从 24C02 参数化——工业现场改配置标配、**仓库不完整实录：main include 的 11 个驱动文件不在仓库编译不过**）/RC522 流程（Request→Anticoll XOR→Select→Halt）+osDelay→HAL_Delay 宏适配手法/WS2812B PWM+DMA 双缓冲 99 行全量（bit=CCR、Rst[240] 帧尾、双 Buf 乒乓+PulseFinishedCallback 预解码、GRB 重排、ARR=105→679kHz 容差内）/CoreMark 25M 晶振时钟树/bug 清单 6 条/validator 记录/生成检查单 7 条（Modbus 五件套/RS485 方向三步/CAN 五件套/WS2812 模板/多字节拆装成对/三件套标准架构）
+- known-pitfalls.md 新增坑 74（多字节拆装只做掩码不做移位：HLW 电能高字节 &0xff00 忘 >>8 恒存 0，坑 63 位运算家族；规矩=拆装成对 (v>>8)&0xff / v&0xff 或封装读写函数）/75（FreeModbus 移植忽略 RS485 方向控制：vMBPortSerialEnable 方向钩子位空着，TTL 直连能跑一上 485 总线必撞车；DE 切换三步：TxEnable 置位/TC 完成清除/验收无 CRC 错）；总 75 条
+- validator：21 文件（md 18+f4 3）3 VIOLATION 全真实零误报（CAN1 can.c RxData/RxHeader ×2、WS main.c max4466_value ×1，全为 HAL 回调=中断上下文非 volatile）；FreeModbus 四 port 文件全 PASS
+- SKILL.md 资源表 rocketpi 行后加 industrial-comms-modbus-can-hal.md 行；README 能力表加「工业通信与计量」行+坑 73→75 两处+文件树加行
+- 注：本轮仅 commit+push 上库，不打 tag 不发 Release（用户要求不发行公开版本）
+
 ## v0.10.2 RocketPi 四 RTOS 移植沉淀（不发版：仅代码上库，无 tag/Release）
 
 - 来源：D:\stm32project\stm32f401re_rocketpi-master\（rocketpi.club 教学套件，STM32F401RE 84MHz，100+ 示例）：**技能库首个 ThreadX 样本 + 首个 Zephyr 样本 + 首个"同板四 RTOS 移植对比"样本**（FreeRTOS×3 形态/RT-Thread Studio/ThreadX 6.4.3 Keil+GCC/Zephyr 4.3.99 HWMv2）
