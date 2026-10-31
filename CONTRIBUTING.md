@@ -2,7 +2,7 @@
 
 ## 反馈问题
 
-1. 先查 [references/known-pitfalls.md](references/known-pitfalls.md)（48 条实测坑）和
+1. 先查 [references/known-pitfalls.md](references/known-pitfalls.md)（73 条实测坑）和
    [references/symptom-quickref.md](references/symptom-quickref.md)（症状反查表）——多数现场问题已有归因；
 2. 没命中再开 [Issue](https://github.com/wdcjx/Embedded-programming/issues)，请附：芯片型号、
    库轨（SPL/HAL）、是否 RTOS、现象描述、可复现的最小代码片段。

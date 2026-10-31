@@ -20,4 +20,4 @@ assignees: ''
 // 在此粘贴
 ```
 
-## 已排查（known-pitfalls 48 条中查过哪几条）
+## 已排查（known-pitfalls.md 中查过哪几条坑）
