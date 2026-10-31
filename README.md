@@ -87,6 +87,7 @@
 | **机电控制** | 平衡车三环（直立 PD+速度 PI+转向，并联合成、事件驱动节拍）与四轴串级 PID（角度外环+角速度内环、时间片调度）双范式；桌面宠物四足步态（对角步态、可打断动作、舵机镜像安装）；编码器测速、H 桥双电机、NRF24L01 无线链路、失联/摔倒/低压安全链设计对照；A→B 官方 ISR 瘦身整改示范（ISR 刷屏→只置标志） | ✅ 三实测工程（v0.8 / v0.9.2 / v0.9.8） |
 | **音频与信号处理** | TIM 触发 DAC 波表 DMA（CIRCULAR）+ ADC 外部触发批采样（NORMAL）+ CMSIS-DSP 1024 点 CFFT 频谱链；变频=停-改PSC-跑三行法（不重跑 Init）；AD8402 数字电位器电子音量；F103VCT6（HD 密度，validator --density hd） | ✅ DDS 电子琴+频谱仪工程实测（v0.9.3） |
 | **FreeRTOS 集成** | FreeRTOSConfig.h 模板 + 任务骨架、向量接管三宏、FromISR 优先级红线（≥5）、20K RAM 堆预算、Keil 手动集成六步 SOP（SPL 轨）；时基迁 TIM 文件地图、CMSIS V1↔V2、双堆模型（HAL 轨）；**裸机库移植范式**（GRBL→F407+FreeRTOS 实测：职责表/忙等让步点/ISR 安全化/cli-sei 策略/LVGL 集成三件套）；Kernel 10.x~11.x | ✅ 实测工程 validator 0/0 |
+| **RTOS 生态移植** | 同板四 RTOS 移植对比（F401RE，ThreadX/Zephyr 首见）：ThreadX×HAL 集成 SOP（_tx_initialize_low_level 逐行/NVIC 0xFF-0xFF-0x40/SysTick 接管/抢占阈值/静态栈线程）、Zephyr HWMv2 板级五件套+dts 声明速查（mipi-dbi-spi 泛生/hc-sr04/esp-at WiFi offload/MCUboot 三分区/west build）、RT-Thread Studio 工程结构、FreeRTOS 三形态（CubeMX/手挂/CMake）、四轨时钟不统一实录（HSI vs HSE） | ✅ RocketPi 四轨文件级（v0.10.2） |
 | **温控与低速执行器** | 300W 加热台温控器（首个 IAR+F103C6T6 低密度工程）：HSI 无晶振 64MHz 方案与时基连锁重算、MAX6675 位拆测温+去极值滤波（除数 N−2）、位置式 PID+秒级低频 PWM 三保险（软开关/上限/死区）、Flash 追加式磨损均衡参数区+掉电安全、ST7735S 160×80 长条屏表驱动 UI、WFI 低功耗主循环、IAR→Keil 移植差异 | ✅ 加热台工程实测（v0.9.4） |
 | **多机协同机器人** | 7 节点系统（遥控/底盘/云台/灯条/发射/双 4310 FOC，F103+F105+F407 混编 HAL+FreeRTOS）：NRF 同地址广播拓扑与 ACK 冲突边界、全系统 20 字节帧协议（浮点×100 编码/环形滑窗同步/无 CRC 风险）、底盘 BMI055+Mahony 1ms 姿态链+双 PID（小陀螺/跟随）+全向轮运动学+云台→底盘坐标旋转、正点原子任务模板通病（start_task 自杀死码/句柄复制）、MspInit 强符号抢占致时钟无声缺失（validator 抓到的真硬件 bug） | ✅ 多节点工程实测（v0.9.5） |
 | **低功耗与可穿戴** | F411 智能手表（LVGL 8.2+FreeRTOS CMSIS_V2，实测上板）：STOP 休眠全套（两级休眠/醒-查-再睡/RTOS 进 STOP 三件套 SuspendAll+关 TICKINT+外狗/醒后重配时钟）、外部看狗 GPIO 喂狗（IWDG 停不掉的替代）、主电源自锁+充电内阻压降补偿 11 段电池曲线、IAP 双固件升级（APP FLAG 掉电安全/Ymodem/跳转五件套/VTOR 与 IROM1 同步）、LVGL 自适应节拍+页面栈+HW_USE 硬件抽象（PC 模拟器同源）、ST7789 DMA flush+BSY 等待、传感器按页唤醒省电矩阵、抬腕/翻腕手势链 | ✅ OV-Watch 智能手表实测（v0.9.6） |
@@ -172,6 +173,7 @@ embed/                                # 单一技能：快速生成 + 工程纪�
   ├── smartwatch-lvgl-lp-hal.md      # 智能手表（F411 HAL+FreeRTOS+LVGL 实测上板）：STOP 低功耗三件套/IAP 双固件/LVGL 集成/传感器按页唤醒
   ├── bus-analyzer-lvgl-hal.md      # 多协议总线分析仪（F407 HAL+LVGL+CMake 实测上板）：9 端口监视/网桥/HAL 回调数据流/双时基/CMake 迁移
   ├── gate-access-mlx90614-hal.md  # 智能防疫门禁（F103C6 最小目标+MLX90614）：SMBus 驱动/门禁判定链/.ioc 漂移与 PEC 前缀 bug
+  ├── rocketpi-rtos-ports.md     # 同板四 RTOS 移植对比（F401RE）：ThreadX 集成 SOP/Zephyr 板级五件套+dts/RT-Thread Studio/FreeRTOS 三形态
 │   ├── spl-peripheral-checklist.md   # 外设初始化顺序清单（纪律）
 │   ├── isr-and-concurrency-rules.md  # ISR/并发/volatile/临界区规则（纪律）
 │   └── known-pitfalls.md             # 已知坑清单（纪律）

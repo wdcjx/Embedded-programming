@@ -2,6 +2,15 @@
 
 > 使用中持续完善。完成打 [x]，进行中打 [~]，未开始留 [ ]。
 
+## v0.10.2 RocketPi 四 RTOS 移植沉淀（不发版：仅代码上库，无 tag/Release）
+
+- 来源：D:\stm32project\stm32f401re_rocketpi-master\（rocketpi.club 教学套件，STM32F401RE 84MHz，100+ 示例）：**技能库首个 ThreadX 样本 + 首个 Zephyr 样本 + 首个"同板四 RTOS 移植对比"样本**（FreeRTOS×3 形态/RT-Thread Studio/ThreadX 6.4.3 Keil+GCC/Zephyr 4.3.99 HWMv2）
+- 新增 references/rocketpi-rtos-ports.md（9 节）：工程总览/四 RTOS 对比表（构建/时钟/集成方式全景，**四轨时钟不统一实录：RT-Thread 轨 BSP_CLOCK_SOURCE=HSI 模板默认未改，其余三轨 HSE**）/ThreadX×HAL 集成 SOP（结构图/_tx_initialize_low_level 逐行：ZI$$Limit+__bss_end__ 双宏、NVIC 0xFF-0xFF-0x40、SysTick=SystemCoreClock/TX_TIMER_TICKS_PER_SECOND；__tx_SVCallHandler=while(1) 占位=CM 端口不用 SVC 与 FreeRTOS 相反；it.c 三改与 FreeRTOS 完全同构：PendSV 注释/SysTick→_tx_timer_interrupt/HAL 时基留 TIM10；tx_thread_create 静态 ULONG 栈+抢占阈值=优先级+TX_NO_TIME_SLICE 模式）/Zephyr 板级五件套（HWMv2 board.yml 权威+yaml 残留 nucleo_f401re 说明）+dts 声明速查表（zephyr,mipi-dbi-spi 泛生 ST7789/hc-sr04 compatible/pwm-leds 泛化蜂鸣器舵机/zephyr,i2c-bitbang 软 I2C/jedec,spi-nor W25Q64/**espressif,esp-at 挂 UART=WiFi offload 直接用 Zephyr 网络栈**/MCUboot 四分区 64K+128K×3/时钟树 dts 写法）+west build 命令（-p always/-b rocket_pi/--sysbuild with_mcuboot）/RT-Thread Studio 工程结构（applications+drivers 全套+linkscripts+.settings 四套调试 launch，hello 模板级）/FreeRTOS 三形态（CubeMX 自动/手挂 Keil/CMake LTS，与既有两篇文档重合不重复展开）/base_samples 中间件能力索引（littlefs/mbedtls/cjson/microrl/easylogger/ymodem/USB CDC+MSC/FATFS/LVGL/MultiButton，未深读声明）/瑕疵清单 3 条/validator 记录/生成检查单 7 条（ThreadX 六步/静态栈/同板多 RTOS 时钟源必写明/四轨 HAL 时基互斥表）
+- validator：ThreadX Keil 用户层 8 文件 --density f4 **全 PASS 0/0**（_tx_timer_interrupt 外部符号不误报）；Zephyr（devicetree API）与 RT-Thread（Studio/BSP API）轨不适用本 validator，边界如实声明
+- 坑清单本轮不新增（无安全级/高复现坑；四轨时钟不统一以检查单第 4 条形式沉淀）——诚实优于凑数，维持 73 条
+- SKILL.md 资源表 symptom-quickref 行前加 rocketpi-rtos-ports.md 行；README 能力表加「RTOS 生态移植」行+文件树加行
+- 注：本轮仅 commit+push 上库，不打 tag 不发 Release（用户要求不发行公开版本）
+
 ## v0.10.1 智能防疫门禁沉淀（不发版：仅代码上库，无 tag/Release）
 
 - 来源：D:\stm32project\课设-智能防疫门禁系统\（用户提供课设工程，STM32F103C6Tx + CubeMX HAL + Keil V5.32，CubeMX 6.4.0 + FW_F1 1.8.4）：**技能库最小目标芯片样本**（F103C6：32KB Flash/10KB RAM）+ **MLX90614 非接触红外测温样本** + 课设级系统集成范例
