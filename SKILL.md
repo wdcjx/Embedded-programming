@@ -1,6 +1,6 @@
 ---
 name: embed
-description: 嵌入式开发辅助技能：为 STM32 等单片机生成完整可编译的 C 代码，支持四条轨——「裸机 SPL（标准外设库，默认）」「SPL + FreeRTOS」「裸机 HAL（CubeMX 生成 + Keil，v0.5 起步）」「HAL + FreeRTOS（铁律已定，完整集成待沉淀）」，内置两档模式——快速模式（直接生成简单示例）与工程纪律模式（老手纪律：时钟先开、ISR 纪律、volatile 与原子访问、等待带超时，并用 validate_generated.py 静态检查到 VIOLATION 清零）。当用户提到 STM32、单片机、嵌入式、标准库、HAL、CubeMX、FreeRTOS、RTOS、任务/队列/信号量、生成/编写/审查/检查/规范代码、跑 validate、外设驱动、点灯、串口收发、PWM、ADC 采样、I2C/SPI 传感器等需求时使用。
+description: 嵌入式开发辅助技能：为 STM32 单片机生成完整可编译的 C 代码。四条轨——裸机 SPL（标准外设库，默认）/ SPL+FreeRTOS / 裸机 HAL（CubeMX+Keil）/ HAL+FreeRTOS——全部集齐；另沉淀 ThreadX、Zephyr、RT-Thread 移植对比与 Keil/IAR/CMake 三构建体系，覆盖串级/三环 PID、FOC 电机、平衡车、四轴飞控、CAN/Modbus/RS485、温控加热、低功耗/IAP/Bootloader、LVGL/GUI、OLED/LCD 显示、DDS/频谱等实测工程知识。两档模式：快速模式直接生成简单示例；工程纪律模式执行老手纪律（时钟先开、ISR 纪律、volatile 与原子访问、等待带超时，validate_generated.py 静态检查到 VIOLATION 清零）。当用户提到 STM32、单片机、嵌入式、标准库、HAL、CubeMX、FreeRTOS、RTOS、Zephyr、ThreadX、RT-Thread、任务/队列/信号量、CAN、Modbus、LVGL、FOC、PID、电机、平衡车、四轴、无人机、舵机、温控、低功耗、IAP、Bootloader、OLED、LCD、点灯、串口收发、PWM、ADC 采样、I2C/SPI 传感器、生成/编写/审查/检查/规范代码、跑 validate 等需求时使用。
 ---
 
 # embed — 嵌入式（STM32 / SPL）开发辅助技能

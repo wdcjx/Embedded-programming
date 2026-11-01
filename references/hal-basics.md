@@ -78,7 +78,7 @@ MDK-ARM/                             # Keil 工程与启动文件
 5. AFIO/重映射：CubeMX 自动写 `__HAL_RCC_AFIO_CLK_ENABLE` 与重映射；手工补代码时别漏（同 SPL 轨坑 3/4）。
 6. TIM 业务与 HAL 时基抢定时器：时基改 TIM 后（如 TIM1/TIM4），该定时器归系统，业务 PWM/TIM 不得占用（CubeMX 选 TimeBase 时会标黄提示）。
 
-## 8. HAL + FreeRTOS 铁律（完整集成文档待沉淀）
+## 8. HAL + FreeRTOS 铁律（完整集成文档已沉淀 → freertos-hal-integration.md）
 
 1. **时基必须迁 TIM**：CubeMX 启用 FreeRTOS 中间件时，TimeBase Source 改为非 SysTick 的 TIM；`HAL_InitTick` 归属该 TIM，SysTick 给内核（CubeMX 的 FreeRTOS 集成会自动处理 PendSV/SVC）。
 2. **任务里禁 `HAL_Delay`**：任务延时用 `osDelay`/`vTaskDelay`；`HAL_Delay` 是忙等，只允许在调度器启动前或驱动初始化内部短延时。

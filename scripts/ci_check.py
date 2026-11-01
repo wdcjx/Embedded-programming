@@ -12,6 +12,7 @@ CI 中由 .github/workflows/ci.yml 调用，exit 0 = 全部通过。
      目录里的文档必须都在表中）
   3. known-pitfalls.md 坑编号连续 1..N（无重号/跳号）
   4. README.md 中坑计数声明 == known-pitfalls.md 实际条数（防忘更新）
+  5. README.md 文件树覆盖 references/ 全部文档（防新增文档忘加文件树行）
 """
 import os
 import re
@@ -86,6 +87,14 @@ declared |= set(int(n) for n in re.findall(r'（(\d+)\s*条实测坑）', readme
 check(f'README 坑计数声明 == 实际 {len(nums)} 条',
       declared == {len(nums)},
       f'声明值 {sorted(declared)} != 实际 {len(nums)}' if declared != {len(nums)} else '')
+
+# ---------- 5. README 文件树覆盖 references 全部文档 ----------
+readme_md_names = set(re.findall(r'([a-z0-9][a-z0-9-]*\.md)', readme))
+ref_names = {f for f in os.listdir(os.path.join(ROOT, 'references'))
+             if f.endswith('.md')}
+not_in_readme = sorted(ref_names - readme_md_names)
+check('README 文件树覆盖 references 全部文档', not not_in_readme,
+      f'README 未提及: {not_in_readme}' if not_in_readme else '')
 
 print()
 if failures:
