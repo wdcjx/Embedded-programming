@@ -7,6 +7,8 @@
 [![clones](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fwdcjx%2FEmbedded-programming%2Fmain%2Fdocs%2Ftraffic.json&query=%24.clones.total&label=total%20clones&color=brightgreen)](https://github.com/wdcjx/Embedded-programming/blob/main/docs/traffic_summary.md)
 [![unique cloners](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fwdcjx%2FEmbedded-programming%2Fmain%2Fdocs%2Ftraffic.json&query=%24.clones.uniques&label=unique%20cloners&color=blue)](https://github.com/wdcjx/Embedded-programming/blob/main/docs/traffic_summary.md)
 
+[English](#english-quick-overview) · 中文
+
 一个给 AI Agent 用的技能（Skill）：让 Agent 能独立完成简单 STM32 项目的代码生成
 （GPIO / UART / TIM / ADC / I2C / SPI / EXTI / DMA / 看门狗 / OLED 显示屏），支持四条轨：
 **裸机 SPL（默认）**、**SPL + FreeRTOS**、**裸机 HAL（CubeMX + Keil，起步）**、**HAL + FreeRTOS**，
@@ -202,3 +204,56 @@ embed/                                # 单一技能：快速生成 + 工程纪�
 ## 许可
 
 MIT
+
+---
+
+## English Quick Overview
+
+An **agent skill** for STM32 embedded development — give your AI agent
+(Claude Code, Codex CLI, DeepSeek Harness, …) the ability to generate
+complete, discipline-checked firmware on its own.
+
+### What it generates
+
+- Four tracks: **bare-metal SPL** (default), **SPL + FreeRTOS**,
+  **bare-metal HAL** (CubeMX + Keil), **HAL + FreeRTOS**
+- Peripherals: GPIO / UART / TIM / ADC / I2C / SPI / EXTI / DMA / WDT /
+  DAC / OLED — plus domain recipes (motor control, low-power, displays,
+  comms, sensors) distilled from real projects
+- Every delivery includes a **pin allocation table, wiring table,
+  project file list, and flashing instructions**
+- Default target **STM32F103C8T6**; family adaptation across F1
+  (C6/C8/RC/VC, density macros + startup files) and F4
+  (F401/F407/F411); other families fall back to HAL track with an
+  honest "not field-tested" statement
+
+### Quality gate
+
+- `scripts/validate_generated.py` — a static discipline checker
+  (clock-enable order, volatile/ISR discipline, blocking-in-ISR,
+  busy-wait timeouts, NVIC grouping, vector names, HAL callbacks,
+  RTOS API misuse). Code ships only when **VIOLATION count is zero**
+- `references/known-pitfalls.md` — **75 field-tested pitfalls**, each
+  with symptom / root cause / fix, harvested from 20+ real open-source
+  and user projects (quadcopter, balance car, FOC motor, smartwatch,
+  bus analyzer, heater controller, industrial Modbus/CAN nodes…)
+- CI regression on every push pins the checker baseline and keeps docs
+  and indexes consistent
+
+### Install
+
+```bash
+npx skills add wdcjx/Embedded-programming
+```
+
+Or clone, rename the folder to `embed`, and drop it into
+`~/.claude/skills/` (or `~/.dsh/skills/`).
+
+### Notes for non-Chinese readers
+
+The reference docs are written in Chinese; code, tables, and the
+checker output are language-neutral, and generated code follows your
+conversation language. The [file tree](#文件结构) above doubles as a
+content index.
+
+[↑ back to top](#readme)
