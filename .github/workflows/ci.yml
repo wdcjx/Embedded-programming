@@ -1,0 +1,52 @@
+name: CI
+
+# 静态回归 + 仓库一致性检查（纯本地计算，无 secrets、无网络依赖）
+# - validator 基线：三 bad_sample 必须 FAIL 且违规/警告数精确匹配，
+#   三 templates 必须 PASS 且 0 违规——规则任何误报/漏报漂移都会被抓住
+# - SKILL.md 资源表 <-> references/ 双向一致
+# - known-pitfalls.md 编号连续；README 坑计数 == 实际条数
+# 本地复现：python scripts/ci_check.py
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/**'
+      - 'templates/**'
+      - 'tests/**'
+      - 'references/**'
+      - 'SKILL.md'
+      - 'README.md'
+      - '.github/workflows/ci.yml'
+  pull_request:
+    paths:
+      - 'scripts/**'
+      - 'templates/**'
+      - 'tests/**'
+      - 'references/**'
+      - 'SKILL.md'
+      - 'README.md'
+      - '.github/workflows/ci.yml'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  regression:
+    if: github.repository == 'wdcjx/Embedded-programming'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Run regression and consistency checks
+        run: python scripts/ci_check.py
