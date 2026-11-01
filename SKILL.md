@@ -61,46 +61,46 @@ description: 嵌入式开发辅助技能：为 STM32 等单片机生成完整可
 - [ ] （纪律模式）validate_generated.py 已跑且 VIOLATION=0，WARNING 已逐条解释
 - [ ] 已声明"未经编译验证"并给出验证方式
 
-## 资源
+## 资源（行内是"何时读"信号；细节在文档内，按需打开）
 
-| 文件 | 内容 |
+| 文件 | 何时读 |
 |---|---|
-| `references/stm32-stdperiph-api.md` | SPL API 速查 + 密度宏/启动文件/工程文件清单 + 内部 FLASH 读写与 96 位 UID/容量寄存器地址（§13） |
-| `references/peripheral-recipes.md` | 典型外设完整配方（点灯/串口/PWM/ADC/I2C/SPI/看门狗…）+ 传感器/总线驱动模式小抄（软件 I2C/DS18B20/DS1302/OLED）+ 参数掉电保存 SRAM 影子整页保存模式（§15，含 IROM 预留） |
-| `references/freertos-spl-integration.md` | SPL+FreeRTOS 集成规则（文件清单/向量接管/FromISR/内存预算/Keil 集成 SOP） |
-| `references/oled-ssd1306.md` | OLED 0.96"（SSD1306）驱动：显存模型/初始化命令表/江协风格 API 约定/软件 I2C 与 SPI 移植/常见坑 |
-| `references/fsmc-lcd-ili9341.md` | FSMC 驱 TFT-LCD（ILI9341/9328，HD/XL）：地址译码原理/引脚表/时序/窗口绘图/R-B 交换/坑（实验九实测） |
-| `references/f4-family-notes.md` | F4 起步（F407VET6 实测工程）：168MHz 时钟树模板/F1→F4 差异对照（32 位 TIM2/Flash 5WS/PWR Scale1）/换轨清单 |
-| `references/gsm-at-sms.md` | GSM 模块 AT 短信报警（SIM800/SIM900，实测）：供电/注网自检/CMGS 序列/回读+超时范式/报警节流三件套/生成检查单 |
-| `references/hal-basics.md` | HAL 轨：CubeMX 工作流/句柄模型/SPL→HAL 对照/回调范式/F1 特有坑/RTOS 铁律 |
-| `references/hal-driver-patterns.md` | HAL 第三方驱动范式：分层结构/I2C 两类时序/SPI+CS/DWT 微秒延时与 HAL 时基迁移/OLED 双版本对照/传感器读数范式（SGP30 CRC/HTS221 插值/DS18B20 时序）/W5500+DW1000 通信移植层（基于 HAL_Driver_Lib） |
-| `references/display-storage-hal.md` | LCD 四总线（SPI ST7789/FSMC/FMC/LTDC+DMA2D）+SDRAM+QSPI Flash 器件级实现（HAL_Driver_Lib 实测）：选型表/寄存器直写 20 倍提速/MPU 配置/刷新率公式/字模偏移/实测 bug 清单 10 条 |
-| `references/freertos-hal-integration.md` | HAL+FreeRTOS 完整集成（CubeMX 实测）：时基 TIM2 文件地图/向量三宏联动/CMSIS V1↔V2/双堆模型/手写集成清单 |
-| `references/grbl-port-f407.md` | 裸机强实时库（GRBL）→ STM32+FreeRTOS 移植范式（F407 实测）：中断/主循环职责表、cli/sei→PRIMASK、忙等让步点、`__get_IPSR()`+pending 中断安全化、LVGL 集成三件套 |
-| `references/quad-drone-spl.md` | 2.4G 四轴遥控/飞控双机系统（F103C8T6 SPL 实测）：双端引脚表/TIM1 时间片调度/NRF24L01+软 SPI 双向链路与 9 字节帧协议/串级 PID（积分分离+反向计算抗饱和+油门门限）/X 型混控与安全链/遥控在线调参 UI/生成检查单 |
-| `references/balance-car-spl.md` | 两轮平衡小车（F103C8 SPL 实测）：MPU6050 INT 事件驱动控制节拍（对照时间片）/直立 PD+速度 PI+转向三环并联合成（对照四轴串级）/实测参数/双编码器+H 桥+SR04 资源表/现场妥协（单编码器跑双轮）/安全链对比/bug 清单 8 条/生成检查单 |
-| `references/desktop-pet-spl.md` | 桌面宠物四足机器人（F103C8 SPL 实测，两版演进对照）：双串口单字节命令协议（语音+蓝牙同表）/四足对角步态与可打断动作系统/舵机镜像安装换算/50Hz 时基复用呼吸灯/A→B 官方 ISR 瘦身整改示范（ISR 刷屏→只置标志）/国产兼容芯零改动直烧实证/生成检查单 |
-| `references/audio-dds-fft-hal.md` | DDS 电子琴+FFT 频谱仪（F103VCT6 HAL 实测）：TIM 触发 DAC 波表 DMA(CIRCULAR)/ADC 外部触发批采样(NORMAL)/CMSIS-DSP 1024 点 CFFT/变频=停-改PSC-跑三行法/AD8402 数字电位器/ILI9325 A16→0x20000 实例/--density hd 首用 |
-| `references/hal-freertos-field-guide.md` | 现场可靠性：__HAL_LOCK/Mutex 优先级继承/临界区分层/任务栈 64B 开销与高水位/堆预算/落地顺序/Cache+DMA（F7/H7）/低功耗坑/常见误解对照 |
-| `references/heater-temp-control-spl.md` | 300W 加热台温控器（F103C6T6 SPL·IAR 实测）：HSI 无晶振 64MHz 方案+时基连锁失准/MAX6675 位拆测温+去极值滤波除数 bug/位置式 PID+低频 PWM 三保险/Flash 追加式磨损均衡+掉电缺口/ST7735S 160×80 长条屏+表驱动 UI/WFI 低功耗主循环/首个 IAR 工程 pragma 与移植差异 |
-| `references/multi-node-robot-rtos-hal.md` | 多节点机器人（F103/F105/F407 HAL+FreeRTOS 实测）：NRF 同地址广播拓扑+ACK 冲突/全系统 20 字节帧协议（浮点×100 编码/滑窗同步）/底盘 BMI055+Mahony 1ms+双 PID+全向轮运动学+云台坐标旋转/正点原子任务模板通病/validator 抓到的 MspInit 时钟缺失真 bug |
-| `references/foc-motor-hal.md` | FOC 无刷直驱（F105+AS5600 HAL 实测，SimpleFOC 移植）：SVPWM 六扇区表/上电校零流程/三环 PID 梯形积分+SysTick Ts/相电流采样+校零/单位混乱实录/25kHz 中心对齐+死区警示/生成检查单 |
-| `references/smartwatch-lvgl-lp-hal.md` | 智能手表（F411CEU6 HAL+FreeRTOS+LVGL 实测上板）：STOP 低功耗全套（两级休眠/醒-查-再睡/RTOS 进 STOP 三件套/外部看狗）/IAP 双固件升级（APP FLAG 掉电安全+跳转五件套+Ymodem）/LVGL 集成（自适应节拍/页面栈/HW_USE 硬件抽象 PC 同源）/ST7789 DMA flush+BSY/传感器按页唤醒/主电源自锁+电池曲线/--density f4 首用 |
-| `references/bus-analyzer-lvgl-hal.md` | 多协议总线分析仪（F407VET6 HAL+LVGL 实测上板，**首个 CMake/CLion 样本**）：9 端口监视/网桥/探针三形态、HAL 弱回调=ISR 数据流（update 标志消费模式）、双时基（SysTick=HAL+TIM=lv_tick）、自研 APP 框架+椭圆轨道 PD 缓动菜单、CMake 迁移四件事、FPU 未开软浮点坑、validator 时钟规则 cube_ctx 降级判据 |
-| `references/gate-access-mlx90614-hal.md` | 智能防疫门禁（F103C6Tx HAL，**技能库最小目标芯片 32K/10K**）：MLX90614 SMBus 软件驱动全解（协议帧/PEC CRC-8 0x107/温度公式 0.02K-273.15/PWM 模式切换/睡眠退出）、门禁判定链三分支+人工解除、舵机 CCR=angle/9+5、.ioc 与代码引脚漂移实例、PEC 前缀 bug、课设级集成与生成检查单 7 条 |
-| `references/rocketpi-rtos-ports.md` | 同板四 RTOS 移植对比（F401RE 文件级，ThreadX/Zephyr 首见）：ThreadX×HAL 集成 SOP（_tx_initialize_low_level 逐行/NVIC 0xFF-0xFF-0x40/it.c 三改/抢占阈值）/Zephyr HWMv2 板级五件套+dts 声明速查（mipi-dbi/hc-sr04/esp-at WiFi offload/MCUboot 分区）/RT-Thread Studio 结构/FreeRTOS 三形态/四轨时钟不统一实录/west build 命令 |
-| `references/industrial-comms-modbus-can-hal.md` | 工业通信与计量（FreeModbus RTU/CAN/RS485/HLW8110，文件级，Modbus+CAN 首见）：FreeModbus BARE 移植四 port 文件职责与三件套契约（eMBInit/Enable/Poll+寄存器数组界面）/CAN 位时序公式+F1 上拉输入与 USB 共用向量+过滤器组态+邮箱收发/HLW8110 配电单元（Modbus 参数 EEPROM 化+VTOR=0x10000 IAP 从机+四串口分工）/RC522 流程与 osDelay 宏适配/WS2812B PWM+DMA 双缓冲乒乓 99 行模板/仓库不完整性实录/生成检查单 7 条 |
-| `references/symptom-quickref.md` | 症状速查：死机/挂死/数据乱等现场表现 → 根因反查表 + 三条排查原则 |
-| `references/spl-peripheral-checklist.md` | 各外设初始化顺序清单与强制项（纪律） |
+| `references/stm32-stdperiph-api.md` | 查 SPL API 签名/密度宏/启动文件/FLASH 读写与 UID（§13） |
+| `references/peripheral-recipes.md` | 典型外设配方（点灯/串口/PWM/ADC/I2C/SPI/看门狗）+传感器小抄+参数掉电保存（§15） |
+| `references/freertos-spl-integration.md` | SPL+FreeRTOS 集成（文件清单/向量接管/FromISR/Keil SOP） |
+| `references/oled-ssd1306.md` | 驱动 SSD1306 0.96" OLED（I2C/SPI 双版） |
+| `references/fsmc-lcd-ili9341.md` | FSMC 并口 TFT-LCD（ILI9341/9328） |
+| `references/f4-family-notes.md` | **生成 F4 先读**：时钟树模板/F1→F4 差异/换轨清单 |
+| `references/gsm-at-sms.md` | GSM AT 短信报警（注网/CMGS/超时范式/节流） |
+| `references/hal-basics.md` | HAL 轨入门：CubeMX 工作流/句柄/回调=F1 坑/RTOS 铁律 |
+| `references/hal-driver-patterns.md` | HAL 第三方驱动范式（I2C/SPI 时序/DWT 延时/传感器/通信移植层） |
+| `references/display-storage-hal.md` | LCD 四总线（SPI/FSMC/FMC/LTDC+DMA2D）+SDRAM+QSPI 器件级 |
+| `references/freertos-hal-integration.md` | HAL+FreeRTOS 集成（时基 TIM/三宏联动/双堆模型） |
+| `references/grbl-port-f407.md` | 移植裸机强实时库（GRBL 等）：职责表/让步点/ISR 安全化 |
+| `references/quad-drone-spl.md` | 四轴遥控/飞控：串级 PID/时间片调度/NRF 链路/X 混控/安全链 |
+| `references/balance-car-spl.md` | 平衡车三环：事件驱动节拍/并联合成/实测参数 |
+| `references/desktop-pet-spl.md` | 四足舵机机器人：对角步态/可打断动作/ISR 瘦身整改对照 |
+| `references/audio-dds-fft-hal.md` | DDS 波形+FFT 频谱（DAC/ADC DMA/CMSIS-DSP/AD8402） |
+| `references/hal-freertos-field-guide.md` | RTOS 现场可靠性（锁/优先级反转/栈堆精算/Cache+DMA） |
+| `references/heater-temp-control-spl.md` | 温控器：HSI 无晶振/PID/Flash 磨损均衡/WFI/首个 IAR |
+| `references/multi-node-robot-rtos-hal.md` | 多节点机器人：NRF 拓扑/全系统帧协议/全向轮运动学 |
+| `references/foc-motor-hal.md` | FOC 无刷直驱（SVPWM/上电校零/三环/死区警示） |
+| `references/smartwatch-lvgl-lp-hal.md` | 低功耗可穿戴：STOP 三件套/IAP 双固件/LVGL/电池曲线 |
+| `references/bus-analyzer-lvgl-hal.md` | **首个 CMake 样本**：总线工具/回调数据流/双时基/FPU 必查 |
+| `references/gate-access-mlx90614-hal.md` | MLX90614 测温 SMBus/门禁判定链（**最小芯片 F103C6**） |
+| `references/rocketpi-rtos-ports.md` | 同板四 RTOS 移植（**ThreadX/Zephyr 首见**） |
+| `references/industrial-comms-modbus-can-hal.md` | FreeModbus RTU/CAN/RS485/WS2812B/RC522（**Modbus+CAN 首见**） |
+| `references/symptom-quickref.md` | 症状速查：死机/挂死/数据乱 → 根因反查表（纪律） |
+| `references/spl-peripheral-checklist.md` | 各外设初始化顺序清单（纪律） |
 | `references/isr-and-concurrency-rules.md` | ISR 模板、volatile/原子性/临界区规则（纪律） |
-| `references/known-pitfalls.md` | 已知坑清单（症状/原因/修法）（纪律） |
-| `templates/main.c` | 裸机 SPL 工程骨架（SysTick 节拍 + 非阻塞主循环 + printf） |
-| `templates/main_rtos_spl.c` + `templates/FreeRTOSConfig.h` | SPL+FreeRTOS 任务工程骨架与 F1 中密度内核配置模板 |
-| `templates/main_hal.c` | HAL 裸机骨架（CubeMX 结构对照 + 手写工程起点，PC13 + USART1） |
-| `assets/spl-project-template.md` | Keil 工程组织/必配项/占用估算/bring-up/多文件模块化布局 |
-| `examples/blink_uart_demo/` | 裸机试例：PC13 点灯 + USART1 打印版本号（已编译运行验证，未上板） |
-| `scripts/validate_generated.py` | 静态纪律检查（启发式；VIOLATION 必须清零；含 RTOS/HAL 规则；厂商库目录自动跳过） |
-| `tests/bad_sample.c` / `bad_sample_rtos.c` / `bad_sample_hal.c` | SPL/RTOS/HAL 故意违规样本，用于自测检查脚本 |
+| `references/known-pitfalls.md` | 已知坑清单 75 条：症状/原因/修法（纪律） |
+| `templates/main.c` | 裸机 SPL 骨架（SysTick 节拍+非阻塞主循环+printf） |
+| `templates/main_rtos_spl.c` + `templates/FreeRTOSConfig.h` | SPL+FreeRTOS 任务骨架与内核配置模板 |
+| `templates/main_hal.c` | HAL 裸机骨架（CubeMX 对照+手写起点） |
+| `assets/spl-project-template.md` | Keil 工程组织/占用估算/多文件模块化布局 |
+| `examples/blink_uart_demo/` | 裸机试例：点灯+串口打印（已编译验证，未上板） |
+| `scripts/validate_generated.py` | 静态纪律检查（VIOLATION 清零才交付；厂商库自动跳过） |
+| `tests/bad_sample*.c` | 故意违规样本，自测检查脚本用 |
 
 ## 维护与沉淀
 
