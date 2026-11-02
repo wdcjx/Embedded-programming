@@ -90,6 +90,7 @@ description: 嵌入式开发辅助技能：为 STM32 单片机生成完整可编
 | `references/gate-access-mlx90614-hal.md` | MLX90614 测温 SMBus/门禁判定链（**最小芯片 F103C6**） |
 | `references/rocketpi-rtos-ports.md` | 同板四 RTOS 移植（**ThreadX/Zephyr 首见**） |
 | `references/industrial-comms-modbus-can-hal.md` | FreeModbus RTU/CAN/RS485/WS2812B/RC522（**Modbus+CAN 首见**） |
+| `references/queue-gate-rtos-hal.md` | FreeRTOS 原语全家桶教学样本+LCD1602 首见 |
 | `references/symptom-quickref.md` | 症状速查：死机/挂死/数据乱 → 根因反查表（纪律） |
 | `references/spl-peripheral-checklist.md` | 各外设初始化顺序清单（纪律） |
 | `references/isr-and-concurrency-rules.md` | ISR 模板、volatile/原子性/临界区规则（纪律） |

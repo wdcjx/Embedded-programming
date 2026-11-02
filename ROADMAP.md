@@ -2,6 +2,15 @@
 
 > 使用中持续完善。完成打 [x]，进行中打 [~]，未开始留 [ ]。
 
+## v0.10.4 智能排队闸机 RTOS 教学样本沉淀（不发版：仅代码上库，无 tag/Release）
+
+- 来源：D:\stm32project\stm32_hal_rtos-master\stm32_hal_rtos-master\智能排队系统(RTOS)\（正点原子 BSP 布局，F103 HAL+FreeRTOS @72MHz，~1000 行用户码）：**技能库首个 FreeRTOS 原语全家桶教学样本 + 首个任务通知实操样本 + 首个 LCD1602/HD44780 样本**
+- 新增 references/queue-gate-rtos-hal.md（9 节）：工程档案/排队闸机状态机（PASS 5 通行权→用尽→WAIT 3s→重置回 PASS）/RTOS 原语清单表（3 任务+2 队列+互斥+计数信号量+软件定时器+任务通知各自职责）/任务通知实操（位域宏 NOTIFY_XXX / 定时器回调只 xTaskNotify 不干活 / xTaskNotifyWait 位域判读；与坑 71"回调=ISR 只置标志"同纪律）/计数信号量资源池（Create(5,5) 通行权、Take(0) 消费、drain-then-refill 重置模式及其单点重置适用边界）/显示任务范式（portMAX_DELAY 阻塞收队列+互斥锁+定长消息结构体，与 field-guide 串行化建议呼应）/LCD1602 并口驱动（PA0~PA7 整口 ODR 直写技巧与代价、不读 BF 的教学版初始化序列、DDRAM 行地址 0x80/0x80+0x40、delay_ms(5) 时序性能账：一行 160ms 全屏 320ms）/bug 清单 6 条（死码掩盖引脚冲突/EXTI 回调 delay_ms 消抖停 tick 20 拍/ia_flag 读清两步非原子/USART1 自管收发 ISR printf 正点原子通病/delay_ms 忙等+HAL_Delay 重写/状态双通道冗余）/validator 记录/生成检查单 7 条
+- known-pitfalls.md 新增坑 76（死码掩盖引脚冲突：key.c PA0/PA1 输入 vs lcd1602.c 整口推挽输出，初始化顺序在后者→按键脚被抢；key_scan 全工程无人调用=冲突被死码掩盖零症状，启用即失效；validator 看不见引脚级冲突=工具边界；规矩=交付引脚表含预留模块/死模块删或标注/整口 ODR 直写是引脚冲突放大器一次抢 8 脚）；总 76 条
+- validator：11 用户文件（--density md）6 VIOLATION 全真实零误报（exti.c ×2：ISR 非 volatile ia_flag+ISR 内 delay_ms；uart1.c ×4：ISR 非 volatile ×3+ISR 内 printf——正点原子模板通病坑 68/71 家族不重复记坑）；freertos_test.c（RTOS 原语主战场）0/0 干净
+- SKILL.md 资源表 industrial-comms 行后加 queue-gate-rtos-hal.md 行（≤40 字触发式）；README 坑 75→76 两处+文件树加行
+- 注：本轮仅 commit+push 上库，不打 tag 不发 Release（用户要求不发行公开版本）
+
 ## v0.10.3 arm32_open 工业通信合集沉淀（不发版：仅代码上库，无 tag/Release）
 
 - 来源：D:\stm32project\arm32_open-master\（26 子工程大合集，F103RC/C8+F407+MM32F3273 全 HAL）：**技能库首个 FreeModbus 样本 + 首个 CAN 样本 + 首个 HLW8110 计量样本 + 首个 WS2812B 完整驱动样本**
