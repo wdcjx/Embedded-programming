@@ -2,6 +2,15 @@
 
 > 使用中持续完善。完成打 [x]，进行中打 [~]，未开始留 [ ]。
 
+## v0.10.5 YUYU 自建外设库沉淀（不发版：仅代码上库，无 tag/Release）
+
+- 来源：D:\stm32project\stm32-opensource-library-STM32F407ZGT6\（STM32F407ZG + **SPL** + FreeRTOS + Keil/RTE，自建 YUYU_Library 两层驱动库）：**技能库 F4 轨首个非 HAL（SPL）样本 + 首个零 VIOLATION 正面教材基准（17 文件全 PASS）**
+- 新增 references/yuyu-library-f4-spl-rtos.md（10 节）：工程档案（F40_41xxx 密度宏/FreeRTOSConfig MAX_SYSCALL=5+栈溢出 2 级+宏接管 PendSV/SysTick 而 SVC 留 port/headfile.h 四段式 include/作者自带 .skill 分层评级文档）driver↔device 两层架构（与 hal-driver-patterns 三层同思想）main.c RTOS 骨架正面教材（vTaskDelayUntil 绝对周期/configASSERT 包创建/双钩子/RECEIVE_TASK_MODE 三态编译切换/临界区+pending 跨任务握手）wifi_esp32_c6 **SPI 二进制协议 WiFi（非 AT，物联网第四范式）**：命令/应答枚举+4 字节头+INT 就绪线握手+固定 32B 短包对齐+4088 chunk 分块+环形 FIFO+全交易超时（对比 NRF 死等坑 45 正面写法）uart.c RTOS 串口教科书（ISR 环形缓冲+vTaskNotifyGiveFromISR+portYIELD、NVIC 15≥MAX_SYSCALL 注释明写、互斥锁帧级原子、9 态帧状态机+CRC8/16 编译期配置+流式再同步；与排队闸机任务通知位域互补=Give/Take 计数语义）screen.c 编译期三屏适配（refresh_begin/end 抹平缓冲型/直写型差异=无 GUI 库标准解法、关键字着色、UTF-8 宽度）驱动层速记（soft_i2c 开漏真电气、one_wire PRIMASK 保存恢复保护时序、ds18b20 非阻塞三段式+CRC8+分辨率掩码、st7789 八方向表、DWT delay=RTOS 正解）bug 清单 6 条（全轻量：明文密码/死码/SPI 忙等无超时/FIFO 满静默丢/三分支复制/逐点开窗性能）validator 记录（17 文件 0 VIOLATION 唯一+4 WARNING 全任务级忙等）生成检查单 7 条（周期任务骨架/configASSERT/ISR→任务通道四件套/SPI 协议模板/多屏适配/PRIMASK 时序保护/DS18B20 三段式）
+- 坑清单不新增（工程质量高无新坑模式，诚实优于凑数——同 v0.10.2 RocketPi 先例）；维持 76 条
+- 顺手修正：SKILL.md 资源表 known-pitfalls 行「75 条」漏更→76 条（CI 未覆盖 SKILL 内计数，待加入检查）
+- SKILL.md 资源表 queue-gate 行后加 yuyu-library-f4-spl-rtos.md 行；README 文件树加行
+- 注：本轮仅 commit+push 上库，不打 tag 不发 Release（用户要求不发行公开版本）
+
 ## v0.10.4 智能排队闸机 RTOS 教学样本沉淀（不发版：仅代码上库，无 tag/Release）
 
 - 来源：D:\stm32project\stm32_hal_rtos-master\stm32_hal_rtos-master\智能排队系统(RTOS)\（正点原子 BSP 布局，F103 HAL+FreeRTOS @72MHz，~1000 行用户码）：**技能库首个 FreeRTOS 原语全家桶教学样本 + 首个任务通知实操样本 + 首个 LCD1602/HD44780 样本**

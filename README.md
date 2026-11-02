@@ -179,6 +179,7 @@ embed/                                # 单一技能：快速生成 + 工程纪�
   ├── rocketpi-rtos-ports.md     # 同板四 RTOS 移植对比（F401RE）：ThreadX 集成 SOP/Zephyr 板级五件套+dts/RT-Thread Studio/FreeRTOS 三形态
   ├── industrial-comms-modbus-can-hal.md  # 工业通信与计量（FreeModbus RTU/CAN/RS485/HLW8110）：四 port 移植/位时序公式/WS2812B 双缓冲/RC522
   ├── queue-gate-rtos-hal.md       # 智能排队闸机（FreeRTOS 原语全家桶教学样本）：任务通知/计数信号量资源池/LCD1602 首见
+  ├── yuyu-library-f4-spl-rtos.md  # YUYU 自建外设库（F407+SPL+FreeRTOS 首见）：SPI 协议 WiFi/RTOS 串口教科书/三屏适配层/零 VIOLATION 正面基准
 │   ├── spl-peripheral-checklist.md   # 外设初始化顺序清单（纪律）
 │   ├── isr-and-concurrency-rules.md  # ISR/并发/volatile/临界区规则（纪律）
 │   └── known-pitfalls.md             # 已知坑清单（纪律）
