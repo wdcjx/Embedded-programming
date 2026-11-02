@@ -100,6 +100,33 @@
 | **工业通信与计量** | FreeModbus RTU 从机移植（BARE 四 port 文件职责/三件套契约/寄存器数组界面/RS485 方向钩子警示）、CAN 收发（位时序公式 baud=PCLK/(PSC×(1+BS1+BS2))/F1 收脚上拉输入与 USB 共用向量/过滤器组态/邮箱收发）、HLW8110 智能配电单元架构（Modbus 参数 EEPROM 化+IAP 从机 VTOR+四串口分工）、WS2812B PWM+DMA 双缓冲乒乓模板（99 行全量）、RC522 RFID 流程与 osDelay 宏适配、开源仓库不完整性检查（arm32_open 26 子工程横评） | ✅ 文件级（v0.10.3，Modbus+CAN 首见） |
 | **工程纪律与静态检查** | `validate_generated.py`：时钟使能顺序、volatile/ISR 纪律、ISR 阻塞调用、等待超时、NVIC 分组、向量名、HAL 回调、RTOS API 误用——VIOLATION 清零才交付；坑清单 76 条（每条症状/原因/修法）；症状速查 14 条反查表；`__HAL_LOCK`/Mutex/临界区/栈堆精算/Cache+DMA 现场可靠性知识 | ✅ 6 个自测样本持续回归 |
 
+## 纪律是怎么保证的：三层防线
+
+生成的代码凭什么可信？**不依赖模型"自觉"，靠流程与工具分层强制**：
+
+| 层 | 机制 | 管什么 | 强度 |
+|---|---|---|---|
+| ① 结构层 | SKILL.md 每次会话强制加载：工作流程、硬约束、自检清单 | 模式路由（SPL/HAL × 裸机/RTOS 四轨）、交付四件套（代码+接线表+烧录方式+未编译声明）、默认假设芯片与引脚表先行 | 硬性，不依赖模型状态 |
+| ② 知识层 | 26 篇 references 按需注入（资源表=路由表：生成 F4 先读 f4-family-notes、写 ISR 前读 isr-and-concurrency-rules） | 领域正确性：外设时序、RTOS 原语、76 条实测坑的反面模式 | 生成对应领域代码时命中 |
+| ③ 客观层 | validator 脚本跑生成的每个 .c 文件，**VIOLATION 清零才交付** | 时钟顺序、volatile、ISR 阻塞、等待超时、NVIC 分组、向量名等约 20 类可静态判定的纪律 | 机器兜底，不采信模型自述 |
+
+**诚实的边界**（写在这里而不是藏起来）：
+
+1. **跨文件一致性是弱项**——A 文件用 PB3、B 文件又配 PB3 这类引脚冲突，validator 是单文件分析看不见（坑 76 即此案例）。对策已写进自检清单：生成前出全工程引脚表，每加一个外设先对照。
+2. **validator 查纪律，不查逻辑**——PID 方向、状态机转移、协议字段这类业务正确性它不管，靠模型+你的实测。
+3. **超长一次性生成会衰减**——上千行的细节纪律（U 后缀、volatile 逐一核查）随长度松弛，这是所有模型的物理规律。
+
+因此**长代码的正确用法是分模块迭代**，而不是"一次写完 2000 行然后祈祷"：
+
+```
+第 1 轮：架构 + 全工程引脚表 + 时钟方案（先对总账）
+第 2 轮：外设驱动逐个生成，每个跑 validator（VIOLATION 清零）
+第 3 轮：业务逻辑 / 任务划分
+每轮交付都带 validator 结果 → 你在 Keil 编译烧录 → 反馈实测问题 → 迭代
+```
+
+单轮压缩到几百行以内，三层防线就都在满血状态——这个流程本身就是 SKILL.md 工作流程的一部分。
+
 ## 常见问题
 
 ### 模板在 VS Code 里报「无法打开源文件 stm32f10x.h / stdio.h」（C/C++ 1696）
@@ -231,14 +258,24 @@ complete, discipline-checked firmware on its own.
 
 ### Quality gate
 
+Discipline does not rely on the model behaving well — it is enforced by
+three layers: **① structure** (SKILL.md workflow/hard constraints/checklist
+loaded every session), **② knowledge** (26 on-demand reference docs routed
+by domain), **③ objective** (the validator script — VIOLATION must reach
+zero before delivery).
+
 - `scripts/validate_generated.py` — a static discipline checker
   (clock-enable order, volatile/ISR discipline, blocking-in-ISR,
   busy-wait timeouts, NVIC grouping, vector names, HAL callbacks,
   RTOS API misuse). Code ships only when **VIOLATION count is zero**
-- `references/known-pitfalls.md` — **75 field-tested pitfalls**, each
+- `references/known-pitfalls.md` — **76 field-tested pitfalls**, each
   with symptom / root cause / fix, harvested from 20+ real open-source
   and user projects (quadcopter, balance car, FOC motor, smartwatch,
   bus analyzer, heater controller, industrial Modbus/CAN nodes…)
+- Known blind spots are documented honestly: cross-file pin conflicts
+  and business logic are outside static checking, so the recommended
+  workflow is iterative module-by-module generation (each round ships
+  with validator output)
 - CI regression on every push pins the checker baseline and keeps docs
   and indexes consistent
 
