@@ -92,10 +92,11 @@ description: 嵌入式开发辅助技能：为 STM32 单片机生成完整可编
 | `references/industrial-comms-modbus-can-hal.md` | FreeModbus RTU/CAN/RS485/WS2812B/RC522（**Modbus+CAN 首见**） |
 | `references/queue-gate-rtos-hal.md` | FreeRTOS 原语全家桶教学样本+LCD1602 首见 |
 | `references/yuyu-library-f4-spl-rtos.md` | **F4+SPL 首见**+自建分层库+零 VIOLATION 正面基准 |
+| `references/usv-autonomous-boat-spl.md` | **水面艇/GPS UBX/Madgwick/遥控捕获首见**：五频时间片+Eastar 链路 |
 | `references/symptom-quickref.md` | 症状速查：死机/挂死/数据乱 → 根因反查表（纪律） |
 | `references/spl-peripheral-checklist.md` | 各外设初始化顺序清单（纪律） |
 | `references/isr-and-concurrency-rules.md` | ISR 模板、volatile/原子性/临界区规则（纪律） |
-| `references/known-pitfalls.md` | 已知坑清单 76 条：症状/原因/修法（纪律） |
+| `references/known-pitfalls.md` | 已知坑清单 79 条：症状/原因/修法（纪律） |
 | `templates/main.c` | 裸机 SPL 骨架（SysTick 节拍+非阻塞主循环+printf） |
 | `templates/main_rtos_spl.c` + `templates/FreeRTOSConfig.h` | SPL+FreeRTOS 任务骨架与内核配置模板 |
 | `templates/main_hal.c` | HAL 裸机骨架（CubeMX 对照+手写起点） |

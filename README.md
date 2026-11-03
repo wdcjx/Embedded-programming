@@ -86,7 +86,7 @@
 | **外设配方（SPL）** | GPIO / EXTI / USART（printf、RXNE+IDLE 不定长帧）/ TIM（定时中断+PWM）/ ADC（F1 校准）/ I2C 主机（扫描、MPU6050）/ SPI 主机 / IWDG / DAC（HD/XL）/ 传感器驱动小抄（DS18B20 等 14 节） | ✅ recipes §1–14 |
 | **显示** | OLED 0.96"（SSD1306，I2C/SPI 双版）；FSMC 驱 TFT-LCD（ILI9341/9328：地址译码/时序/窗口绘图/波形示波器信号链）；HAL 轨 LCD 四总线（SPI/FSMC/FMC/LTDC+DMA2D） | ✅ 多工程实测 |
 | **通信与报警** | GSM 模块（SIM800/900）AT 短信：注网自检序列、CMGS 完整流程、回读+超时范式（禁盲等）、报警节流三件套（锁存/冷却/重发升级）、传感器阈值报警架构（滞回） | ✅ 火灾报警工程实测（v0.6.3） |
-| **机电控制** | 平衡车三环（直立 PD+速度 PI+转向，并联合成、事件驱动节拍）与四轴串级 PID（角度外环+角速度内环、时间片调度）双范式；桌面宠物四足步态（对角步态、可打断动作、舵机镜像安装）；编码器测速、H 桥双电机、NRF24L01 无线链路、失联/摔倒/低压安全链设计对照；A→B 官方 ISR 瘦身整改示范（ISR 刷屏→只置标志） | ✅ 三实测工程（v0.8 / v0.9.2 / v0.9.8） |
+| **机电控制** | 平衡车三环（直立 PD+速度 PI+转向，并联合成、事件驱动节拍）与四轴串级 PID（角度外环+角速度内环、时间片调度）双范式；桌面宠物四足步态（对角步态、可打断动作、舵机镜像安装）；USV 无人水面艇（五频嵌套取模时间片、Madgwick 9 轴+初始对准+增益衰减、遥控 PWM 双边沿捕获、增量式 PID 取大误差夹挤、树莓派离线 2s 锁电机）；编码器测速（关中断读 CNT 组合圈数法）、H 桥双电机、NRF24L01 无线链路、失联/摔倒/低压/离线安全链四工程对照；A→B 官方 ISR 瘦身整改示范（ISR 刷屏→只置标志） | ✅ 四实测工程（v0.8 / v0.9.2 / v0.9.8 / v0.10.6） |
 | **音频与信号处理** | TIM 触发 DAC 波表 DMA（CIRCULAR）+ ADC 外部触发批采样（NORMAL）+ CMSIS-DSP 1024 点 CFFT 频谱链；变频=停-改PSC-跑三行法（不重跑 Init）；AD8402 数字电位器电子音量；F103VCT6（HD 密度，validator --density hd） | ✅ DDS 电子琴+频谱仪工程实测（v0.9.3） |
 | **FreeRTOS 集成** | FreeRTOSConfig.h 模板 + 任务骨架、向量接管三宏、FromISR 优先级红线（≥5）、20K RAM 堆预算、Keil 手动集成六步 SOP（SPL 轨）；时基迁 TIM 文件地图、CMSIS V1↔V2、双堆模型（HAL 轨）；**裸机库移植范式**（GRBL→F407+FreeRTOS 实测：职责表/忙等让步点/ISR 安全化/cli-sei 策略/LVGL 集成三件套）；Kernel 10.x~11.x | ✅ 实测工程 validator 0/0 |
 | **RTOS 生态移植** | 同板四 RTOS 移植对比（F401RE，ThreadX/Zephyr 首见）：ThreadX×HAL 集成 SOP（_tx_initialize_low_level 逐行/NVIC 0xFF-0xFF-0x40/SysTick 接管/抢占阈值/静态栈线程）、Zephyr HWMv2 板级五件套+dts 声明速查（mipi-dbi-spi 泛生/hc-sr04/esp-at WiFi offload/MCUboot 三分区/west build）、RT-Thread Studio 工程结构、FreeRTOS 三形态（CubeMX/手挂/CMake）、四轨时钟不统一实录（HSI vs HSE） | ✅ RocketPi 四轨文件级（v0.10.2） |
@@ -98,7 +98,7 @@
 | **多协议总线工具** | 多协议总线分析仪（F407VET6 HAL+LVGL 实测上板，**首个 CMake/CLion+arm-none-eabi-gcc 样本**）：9 端口（3 UART 含 RS485/2 CAN/2 SPI/2 I2C）监视+网桥+信号源探针三形态、HAL 弱回调=ISR 的 update 标志消费数据流、双时基（SysTick=HAL+TIM=lv_tick）、自研 APP 框架+椭圆轨道 PD 缓动菜单、CMake 工程四件事（.ld/GLOB_RECURSE/objcopy/OpenOCD）、FPU 编译选项必查 | ✅ Linno 总线分析仪实测（v0.10.0） |
 | **门禁与人体测温** | 智能防疫门禁（F103C6Tx，**技能库最小目标芯片 32K Flash/10K RAM**）：MLX90614 非接触红外测温 SMBus 软件驱动（协议帧/PEC CRC-8 0x107/temp=raw×0.02−273.15/PWM→SMBus 切换/睡眠退出）、门禁判定链三分支（无效驻留/正常放行/异常人工解除）、舵机 CCR=angle/9+5、ST7735 QDtech 显示层、.ioc 与代码引脚漂移实例（busy PB2↔PB1）、PEC 前缀填错=校验恒失败仍返回数据、淘宝驱动 SPL→HAL 移植三查 | ✅ 门禁工程实测（v0.10.1） |
 | **工业通信与计量** | FreeModbus RTU 从机移植（BARE 四 port 文件职责/三件套契约/寄存器数组界面/RS485 方向钩子警示）、CAN 收发（位时序公式 baud=PCLK/(PSC×(1+BS1+BS2))/F1 收脚上拉输入与 USB 共用向量/过滤器组态/邮箱收发）、HLW8110 智能配电单元架构（Modbus 参数 EEPROM 化+IAP 从机 VTOR+四串口分工）、WS2812B PWM+DMA 双缓冲乒乓模板（99 行全量）、RC522 RFID 流程与 osDelay 宏适配、开源仓库不完整性检查（arm32_open 26 子工程横评） | ✅ 文件级（v0.10.3，Modbus+CAN 首见） |
-| **工程纪律与静态检查** | `validate_generated.py`：时钟使能顺序、volatile/ISR 纪律、ISR 阻塞调用、等待超时、NVIC 分组、向量名、HAL 回调、RTOS API 误用——VIOLATION 清零才交付；坑清单 76 条（每条症状/原因/修法）；症状速查 14 条反查表；`__HAL_LOCK`/Mutex/临界区/栈堆精算/Cache+DMA 现场可靠性知识 | ✅ 6 个自测样本持续回归 |
+| **工程纪律与静态检查** | `validate_generated.py`：时钟使能顺序、volatile/ISR 纪律、ISR 阻塞调用、等待超时、NVIC 分组、向量名、HAL 回调、RTOS API 误用——VIOLATION 清零才交付；坑清单 79 条（每条症状/原因/修法）；症状速查 14 条反查表；`__HAL_LOCK`/Mutex/临界区/栈堆精算/Cache+DMA 现场可靠性知识 | ✅ 6 个自测样本持续回归 |
 
 ## 纪律是怎么保证的：三层防线
 
@@ -107,7 +107,7 @@
 | 层 | 机制 | 管什么 | 强度 |
 |---|---|---|---|
 | ① 结构层 | SKILL.md 每次会话强制加载：工作流程、硬约束、自检清单 | 模式路由（SPL/HAL × 裸机/RTOS 四轨）、交付四件套（代码+接线表+烧录方式+未编译声明）、默认假设芯片与引脚表先行 | 硬性，不依赖模型状态 |
-| ② 知识层 | 26 篇 references 按需注入（资源表=路由表：生成 F4 先读 f4-family-notes、写 ISR 前读 isr-and-concurrency-rules） | 领域正确性：外设时序、RTOS 原语、76 条实测坑的反面模式 | 生成对应领域代码时命中 |
+| ② 知识层 | 27 篇 references 按需注入（资源表=路由表：生成 F4 先读 f4-family-notes、写 ISR 前读 isr-and-concurrency-rules） | 领域正确性：外设时序、RTOS 原语、79 条实测坑的反面模式 | 生成对应领域代码时命中 |
 | ③ 客观层 | validator 脚本跑生成的每个 .c 文件，**VIOLATION 清零才交付** | 时钟顺序、volatile、ISR 阻塞、等待超时、NVIC 分组、向量名等约 20 类可静态判定的纪律 | 机器兜底，不采信模型自述 |
 
 **诚实的边界**（写在这里而不是藏起来）：
@@ -160,7 +160,7 @@
 ## 反馈与社区
 
 - 问题/建议：[Issues](https://github.com/wdcjx/Embedded-programming/issues)——提问前先搜
-  [references/known-pitfalls.md](references/known-pitfalls.md)（76 条实测坑）与
+  [references/known-pitfalls.md](references/known-pitfalls.md)（79 条实测坑）与
   [references/symptom-quickref.md](references/symptom-quickref.md)（症状反查表）；
 - 经验交流/求助：[Discussions](https://github.com/wdcjx/Embedded-programming/discussions)；
 - 想沉淀自己的实测工程或增强 validator：规矩见 [CONTRIBUTING.md](CONTRIBUTING.md)。
@@ -207,6 +207,7 @@ embed/                                # 单一技能：快速生成 + 工程纪�
   ├── industrial-comms-modbus-can-hal.md  # 工业通信与计量（FreeModbus RTU/CAN/RS485/HLW8110）：四 port 移植/位时序公式/WS2812B 双缓冲/RC522
   ├── queue-gate-rtos-hal.md       # 智能排队闸机（FreeRTOS 原语全家桶教学样本）：任务通知/计数信号量资源池/LCD1602 首见
   ├── yuyu-library-f4-spl-rtos.md  # YUYU 自建外设库（F407+SPL+FreeRTOS 首见）：SPI 协议 WiFi/RTOS 串口教科书/三屏适配层/零 VIOLATION 正面基准
+   ├── usv-autonomous-boat-spl.md  # USV 无人水面艇（GPS UBX/Madgwick/遥控捕获首见）：五频时间片/Eastar 链路/低有效 PWM
 │   ├── spl-peripheral-checklist.md   # 外设初始化顺序清单（纪律）
 │   ├── isr-and-concurrency-rules.md  # ISR/并发/volatile/临界区规则（纪律）
 │   └── known-pitfalls.md             # 已知坑清单（纪律）
@@ -268,7 +269,7 @@ zero before delivery).
   (clock-enable order, volatile/ISR discipline, blocking-in-ISR,
   busy-wait timeouts, NVIC grouping, vector names, HAL callbacks,
   RTOS API misuse). Code ships only when **VIOLATION count is zero**
-- `references/known-pitfalls.md` — **76 field-tested pitfalls**, each
+- `references/known-pitfalls.md` — **79 field-tested pitfalls**, each
   with symptom / root cause / fix, harvested from 20+ real open-source
   and user projects (quadcopter, balance car, FOC motor, smartwatch,
   bus analyzer, heater controller, industrial Modbus/CAN nodes…)

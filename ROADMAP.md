@@ -2,6 +2,15 @@
 
 > 使用中持续完善。完成打 [x]，进行中打 [~]，未开始留 [ ]。
 
+## v0.10.6 USV 无人水面艇沉淀（不发版：仅代码上库，无 tag/Release）
+
+- 来源：D:\stm32project\USV-STM32F103-part-master\（Estello_UAS，STM32F103**ZE** HD + SPL 裸机 + Keil，~4000 行用户码）：**技能库首个水面机器人样本 + 首个 u-blox UBX 二进制 GPS 样本 + 首个 Madgwick 9 轴姿态样本 + 首个遥控 PWM 捕获样本**
+- 新增 references/usv-autonomous-boat-spl.md（10 节）：双层架构图（STM32 实时层+树莓派规划层，Eastar 0.2 协议 22B 帧+离线 2s 锁电机）/CONFIGURATION.h 配置驱动架构（模块 #define+单头文件分节声明，反常规组织样本：优缺点+生成建议）/五频时间片（TIM5 5ms 基础脉冲→嵌套取模分频树 200/100/50/10/5/1Hz+优先级通信让位控制）/Madgwick 9 轴（2011 官方原版逐字移植+初始对准好实践+3s 增益自动衰减+欧拉角三级错位约定疑点未定论）/UBX 全解（CFG-PRT/RATE/NAV5/MSG 预打包配置帧+NAV-PVT 字段偏移表+DMA CIRCULAR+IDLE ISR 内同步解析+fixtype!=5 有效性判据）/Eastar 协议（下行遥测 22B/上行航点 17B+LoRa AUX 忙检测+DMA TX 查 TC+CNDTR）/控制链（TIM3 双边沿捕获状态机 50kHz 中断换 1µs 精度、增量式 PID 取大误差夹挤+方向切换预置 bias 防反扭、低有效 PWM 全套自洽约定、编码器关中断读 CNT+组合圈数法、Motor_Function 整除截断 latent bug）/硬件资源全表（含死文件清单：小写 InputCapture TIM2 版勿误编/NRF 空壳/EXTI 死模块）/bug 清单 12 条（velN/E 对调、pDOP 循环双除、帧同步不回零双实例、GY901 灾难贯穿 #if 0 警戒样本、硬铁硬编码、PID static 130 上电半速等）/validator+生成检查单 8 条
+- known-pitfalls.md 新增坑 77（帧头同步状态机不匹配不清零匹配指针：错过第一字节后第二字节续上假同步，TD+GPS 双实例；规矩=不匹配清零+当前字节重判 Header[0] 或滑窗 memcmp）/78（整数除法当映射系数：400/255=1 截断期望 1.57，占空比只映射 63~100% 满速到不了；循环内做最终换算变体 pDOP 双除；规矩=浮点系数或先乘后除+换算放循环外）/79（PID 控制器 static/全局输出量遗留非零初值：outputPWM=130 上电半速；规矩=控制器状态量显式清零+上电序列第一拍前执行器置停）；总 79 条
+- validator：22 文件（--density hd）3 VIOLATION 全真实零误报——唯一 FAIL=Motor.c（TIM4 编码器 ISR 访非 volatile static Round/counterForRound/last_direction 三连）；Loop.c 0V（TimeSlice 全 volatile）=全工程 volatile 纪律较好唯 Motor.c static 组漏网
+- SKILL.md 资源表 yuyu 行后加 usv-autonomous-boat-spl.md 行+known-pitfalls 行 76→79；README 机电控制行扩水面艇（三实测→四实测 v0.10.6）+坑 76→79 三处+知识层 26→27 篇+文件树加行
+- 注：本轮仅 commit+push 上库，不打 tag 不发 Release（用户要求不发行公开版本）
+
 ## v0.10.5 YUYU 自建外设库沉淀（不发版：仅代码上库，无 tag/Release）
 
 - 来源：D:\stm32project\stm32-opensource-library-STM32F407ZGT6\（STM32F407ZG + **SPL** + FreeRTOS + Keil/RTE，自建 YUYU_Library 两层驱动库）：**技能库 F4 轨首个非 HAL（SPL）样本 + 首个零 VIOLATION 正面教材基准（17 文件全 PASS）**
