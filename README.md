@@ -98,7 +98,8 @@
 | **多协议总线工具** | 多协议总线分析仪（F407VET6 HAL+LVGL 实测上板，**首个 CMake/CLion+arm-none-eabi-gcc 样本**）：9 端口（3 UART 含 RS485/2 CAN/2 SPI/2 I2C）监视+网桥+信号源探针三形态、HAL 弱回调=ISR 的 update 标志消费数据流、双时基（SysTick=HAL+TIM=lv_tick）、自研 APP 框架+椭圆轨道 PD 缓动菜单、CMake 工程四件事（.ld/GLOB_RECURSE/objcopy/OpenOCD）、FPU 编译选项必查 | ✅ Linno 总线分析仪实测（v0.10.0） |
 | **门禁与人体测温** | 智能防疫门禁（F103C6Tx，**技能库最小目标芯片 32K Flash/10K RAM**）：MLX90614 非接触红外测温 SMBus 软件驱动（协议帧/PEC CRC-8 0x107/temp=raw×0.02−273.15/PWM→SMBus 切换/睡眠退出）、门禁判定链三分支（无效驻留/正常放行/异常人工解除）、舵机 CCR=angle/9+5、ST7735 QDtech 显示层、.ioc 与代码引脚漂移实例（busy PB2↔PB1）、PEC 前缀填错=校验恒失败仍返回数据、淘宝驱动 SPL→HAL 移植三查 | ✅ 门禁工程实测（v0.10.1） |
 | **工业通信与计量** | FreeModbus RTU 从机移植（BARE 四 port 文件职责/三件套契约/寄存器数组界面/RS485 方向钩子警示）、CAN 收发（位时序公式 baud=PCLK/(PSC×(1+BS1+BS2))/F1 收脚上拉输入与 USB 共用向量/过滤器组态/邮箱收发）、HLW8110 智能配电单元架构（Modbus 参数 EEPROM 化+IAP 从机 VTOR+四串口分工）、WS2812B PWM+DMA 双缓冲乒乓模板（99 行全量）、RC522 RFID 流程与 osDelay 宏适配、开源仓库不完整性检查（arm32_open 26 子工程横评） | ✅ 文件级（v0.10.3，Modbus+CAN 首见） |
-| **工程纪律与静态检查** | `validate_generated.py`：时钟使能顺序、volatile/ISR 纪律、ISR 阻塞调用、等待超时、NVIC 分组、向量名、HAL 回调、RTOS API 误用——VIOLATION 清零才交付；坑清单 79 条（每条症状/原因/修法）；症状速查 14 条反查表；`__HAL_LOCK`/Mutex/临界区/栈堆精算/Cache+DMA 现场可靠性知识 | ✅ 6 个自测样本持续回归 |
+| **达妙电机与伺服执行器** | 推板机器人控制固件（F407ZET6 SPL+FreeRTOS，**首个 validator 零违规工程**）：达妙 DM 电机 MIT 协议全解（8B 位域帧 p16/v12/Kp12/Kd12/t12+float↔uint 线性映射+使能 0xFC/失能 0xFD/设零 0xFE+反馈状态码）、使能重试（上电 1~2s 启动窗口帧全丢）、多圈累计位置（±P_MAX 回绕补偿）、ID 扫描双模式（CAN ACK≠认帧）、PI 力矩前馈实测数据、CAN 诊断十连命令（CANERR/LOOPTEST 内部回环/CANSCOPE DWT 示波器/STB 五态扫描——"每条命令只切一刀"方法论）、NART 邮箱锁死与 CAN_Prescaler 语义两颗实战金坑、ESP-NOW 无线串口桥、CH9121 网口模块 TCP 流切包+单读者设计、OpenOCD 命令行烧录（Keil 5.20 驱动认不出新 DAPLink 的解法+ASCII 路径规矩） | ✅ 推板机器人实测（v0.10.7，达妙/ESP-NOW/网口模块/OpenOCD 首见） |
+| **工程纪律与静态检查** | `validate_generated.py`：时钟使能顺序、volatile/ISR 纪律、ISR 阻塞调用、等待超时、NVIC 分组、向量名、HAL 回调、RTOS API 误用——VIOLATION 清零才交付；坑清单 82 条（每条症状/原因/修法）；症状速查 14 条反查表；`__HAL_LOCK`/Mutex/临界区/栈堆精算/Cache+DMA 现场可靠性知识 | ✅ 6 个自测样本持续回归 |
 
 ## 纪律是怎么保证的：三层防线
 
@@ -107,7 +108,7 @@
 | 层 | 机制 | 管什么 | 强度 |
 |---|---|---|---|
 | ① 结构层 | SKILL.md 每次会话强制加载：工作流程、硬约束、自检清单 | 模式路由（SPL/HAL × 裸机/RTOS 四轨）、交付四件套（代码+接线表+烧录方式+未编译声明）、默认假设芯片与引脚表先行 | 硬性，不依赖模型状态 |
-| ② 知识层 | 27 篇 references 按需注入（资源表=路由表：生成 F4 先读 f4-family-notes、写 ISR 前读 isr-and-concurrency-rules） | 领域正确性：外设时序、RTOS 原语、79 条实测坑的反面模式 | 生成对应领域代码时命中 |
+| ② 知识层 | 28 篇 references 按需注入（资源表=路由表：生成 F4 先读 f4-family-notes、写 ISR 前读 isr-and-concurrency-rules） | 领域正确性：外设时序、RTOS 原语、82 条实测坑的反面模式 | 生成对应领域代码时命中 |
 | ③ 客观层 | validator 脚本跑生成的每个 .c 文件，**VIOLATION 清零才交付** | 时钟顺序、volatile、ISR 阻塞、等待超时、NVIC 分组、向量名等约 20 类可静态判定的纪律 | 机器兜底，不采信模型自述 |
 
 **诚实的边界**（写在这里而不是藏起来）：
@@ -160,7 +161,7 @@
 ## 反馈与社区
 
 - 问题/建议：[Issues](https://github.com/wdcjx/Embedded-programming/issues)——提问前先搜
-  [references/known-pitfalls.md](references/known-pitfalls.md)（79 条实测坑）与
+  [references/known-pitfalls.md](references/known-pitfalls.md)（82 条实测坑）与
   [references/symptom-quickref.md](references/symptom-quickref.md)（症状反查表）；
 - 经验交流/求助：[Discussions](https://github.com/wdcjx/Embedded-programming/discussions)；
 - 想沉淀自己的实测工程或增强 validator：规矩见 [CONTRIBUTING.md](CONTRIBUTING.md)。
@@ -207,7 +208,8 @@ embed/                                # 单一技能：快速生成 + 工程纪�
   ├── industrial-comms-modbus-can-hal.md  # 工业通信与计量（FreeModbus RTU/CAN/RS485/HLW8110）：四 port 移植/位时序公式/WS2812B 双缓冲/RC522
   ├── queue-gate-rtos-hal.md       # 智能排队闸机（FreeRTOS 原语全家桶教学样本）：任务通知/计数信号量资源池/LCD1602 首见
   ├── yuyu-library-f4-spl-rtos.md  # YUYU 自建外设库（F407+SPL+FreeRTOS 首见）：SPI 协议 WiFi/RTOS 串口教科书/三屏适配层/零 VIOLATION 正面基准
-   ├── usv-autonomous-boat-spl.md  # USV 无人水面艇（GPS UBX/Madgwick/遥控捕获首见）：五频时间片/Eastar 链路/低有效 PWM
+  ├── usv-autonomous-boat-spl.md  # USV 无人水面艇（GPS UBX/Madgwick/遥控捕获首见）：五频时间片/Eastar 链路/低有效 PWM
+  ├── damiao-motor-can-f4-spl.md  # 达妙电机机器人（达妙 MIT 协议/ESP-NOW 桥/网口模块/OpenOCD 首见）：CAN 诊断十连/首个零违规工程
 │   ├── spl-peripheral-checklist.md   # 外设初始化顺序清单（纪律）
 │   ├── isr-and-concurrency-rules.md  # ISR/并发/volatile/临界区规则（纪律）
 │   └── known-pitfalls.md             # 已知坑清单（纪律）

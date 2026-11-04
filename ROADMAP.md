@@ -2,6 +2,15 @@
 
 > 使用中持续完善。完成打 [x]，进行中打 [~]，未开始留 [ ]。
 
+## v0.10.7 达妙电机机器人沉淀（不发版：仅代码上库，无 tag/Release）
+
+- 来源：D:\stm32project\f407-rod-support-master\（推板机器人控制固件，STM32F407ZET6 + SPL + FreeRTOS V202212 + Keil + OpenOCD/CMSIS-DAP）：**技能库首个达妙 DM 电机样本 + 首个 ESP-NOW 无线串口桥样本 + 首个 CH9121 网口模块样本 + 首个 OpenOCD 命令行烧录样本 + 首个 validator 零违规工程**
+- 新增 references/damiao-motor-can-f4-spl.md（10 节）：架构图（三执行器：达妙 CAN/ESP-NOW 推杆/DRV8251A 支撑杆+CH9121 网关 5 任务）/达妙 MIT 协议全解（8B 位域帧 p16/v12/Kp12/Kd12/t12+float↔uint 线性映射+0xFC/0xFD/0xFE 控制帧+反馈状态码表+四模式状态机+实测参数 kd=1.0 稳 4.0 振荡+PI 前馈 75.1%→2.7%）/三实战设计（使能重试 300ms 补发、多圈累计 ±P_MAX 回绕补偿、ID 扫描双模式 before 先取）/CAN 两金坑（NART×上电无 ACK=邮箱永久锁死 tx=3 fail=4564；CAN_Prescaler 写 N 即 N 分频≠TIM 的 +1）/CAN 诊断十连命令表（CANERR/LOOPTEST/CANSCOPE/PULSE/CANREG/BAUDn/STBMODE 五态等，"每条命令只切一刀"方法论）/ESP-NOW 链路（明文 ASCII+六组候选串口引脚运行时切换+行缓冲回执）/网口协议（TCP 流帧头重同步+单读者 cmd_feed_byte 转发+心跳保活+发送互斥锁防插花）/RTOS 纪律样本（FromISR 优先级 11 规则+钩子不走锁+volatile 全对）/OpenOCD 烧录（Keil 5.20 驱动认不出 2023 DAPLink 的解法+版本目录自动探测+ASCII 路径规矩）/bug 观察 7 条+validator 记录+生成检查单 7 条
+- known-pitfalls.md 新增坑 80（CAN 自动重传×上电无 ACK=发送邮箱永久锁死：安全设计×协议特性组合陷阱，NART=ENABLE+ABOM 正解）/81（SPL CAN_Prescaler 语义与 TIM 相反：写 N 即 N 分频；写 2 变 1.5Mbps 电机解不出帧零反馈；手算 baud=PCLK1/(PSC×(1+BS1+BS2)) 规矩）/82（函数指针回调注册式设计把 ISR 上下文移出静态检查视野：can1_set_rx_callback→dm_can_rx_handler 的 g_status 逃过 volatile 规则；回调按 ISR 纪律写+双侧注释声明中断语境）；总 82 条
+- validator：12 用户文件（--density f4）**全 PASS 0 VIOLATION/5 WARNING**——30+ 工程首个零违规；WARNING 逐条接受理由（NVIC 分组 main 统一配+任务上下文 TXE 忙等）；盲区观察=g_status 回调链（记坑 82）
+- SKILL.md 资源表 usv 行后加 damiao-motor-can-f4-spl.md 行+known-pitfalls 行 79→82；README 能力表新增「达妙电机与伺服执行器」行+坑 79→82 三处+知识层 27→28 篇+文件树加行（顺手修 usv 行缩进错位）
+- 注：本轮仅 commit+push 上库，不打 tag 不发 Release（用户要求不发行公开版本）
+
 ## v0.10.6 USV 无人水面艇沉淀（不发版：仅代码上库，无 tag/Release）
 
 - 来源：D:\stm32project\USV-STM32F103-part-master\（Estello_UAS，STM32F103**ZE** HD + SPL 裸机 + Keil，~4000 行用户码）：**技能库首个水面机器人样本 + 首个 u-blox UBX 二进制 GPS 样本 + 首个 Madgwick 9 轴姿态样本 + 首个遥控 PWM 捕获样本**
