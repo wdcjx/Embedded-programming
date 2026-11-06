@@ -2,6 +2,15 @@
 
 > 使用中持续完善。完成打 [x]，进行中打 [~]，未开始留 [ ]。
 
+## v0.10.8 PackLink-BMS 电池管理系统沉淀（不发版：仅代码上库，无 tag/Release）
+
+- 来源：D:\stm32project\stm32-freertos-bms-packlink-master\（磐链电池包安全监测与边缘诊断系统，STM32F103C8T6 + BQ76940 9 串 + HAL + FreeRTOS CMSIS_V2 + Keil，实物联调完成，配套 Qt 上位机+微信小程序+docs 25 篇编号文档）：**技能库首个 BMS/AFE 样本 + 首个带单元测试工程（36 用例 2065 行）+ 首个五层架构业务样本**
+- 新增 references/bms-bq769x0-hal.md（11 节）：五层架构图（app/bms 16 模块/drivers/platform/board/ports）+裸机/RTOS 双模式同一套业务（bms_app_step 轮询入口 vs start_tasks RTOS 入口）/依赖注入三通道（运行时 init_with_board bind 函数表、ops 虚表 soft_i2c/can/rs485、__weak params storage 钩子——业务零 HAL 依赖，测试注入 fake 后端的根）/BQ769x0 驱动全解（9S 逻辑电芯→VC 通道索引表 {0,1,4,5,6,9,10,11,14} 与 pin_map.md 声明一致性、GAIN=365+...µV/LSB+OFFSET int8 每次采样重读抗热漂移、OV/UV trip 逆换算 ((mV-offset)*1000/gain-base)>>4、SYS_STAT→fault_flags 映射、均衡 idx/5 选寄存器 idx%5 选位、wake PA8 高 100ms 时序）/保护与控制链（OV/UV 恢复回差迟滞带、故障分侧关断、手动 MOS 开命令=清锁存→开→回读确认三步+protect 不得覆盖手动关、SOC 门限自动停）/SOC 双路径（OCV 七点表按最低单体重锚+安时积分 vs 工具帧 19 档查表两套并存说明）/通信三协议（RS485 ASCII 命令表、50B 工具帧按物理 VC 槽位布放、CAN 0x01~07+0x100 命令+0x101 ACK；串口与 CAN 共享 handle_binary_command 单份实现）/BQRAW 诊断事务=volatile busy 标志+120ms 跳拍软互斥+均衡暂停恢复范本/板级要点（软 I2C 写自动附 CRC-8 0x07、UART 三段防御自愈重挂、CAN ISR 只 push 环不调 FreeRTOS API、RS485+BLE 双物理口一逻辑链、Flash 末页单记录 magic+XOR）/单元测试设计（fail-fast 手写 runner 返回-行号、fake_i2c/can/rs485 注入、用例名即契约三例）+文档驱动开发方法论（docs 编号体系+CSV/MD 双格式验收+16 张实测照片）/bug 清单 5 条（I2C CRC 写带读不带、双 SOC 表、tick 回绕、slot 表两端同步、GPIO 时钟顺序依赖）/validator 记录+生成检查单 9 条
+- known-pitfalls.md 新增坑 83（I2C 外设 CRC 使能后写附校验读不校验：BQ769x0 SYS_CTRL1=0x18 CRC_EN=1 写路径自动附第五字节读路径裸奔，链路保护只做一半；规矩=CRC 双向契约要么都做要么关掉）/84（SPSC 环形队列 volatile 粒度：索引 volatile 成员+缓冲区非 volatile 是正解，validator 报 g_can_ctx 非 volatile 是粒度不足误报；反向真坑=整结构体 volatile 化或索引漏 volatile；规矩=模板四要素）/85（模块自含 GPIO 初始化不自含时钟使能：PA8 wake 依赖 MX_GPIO_Init 先开 GPIOA，顺序耦合+移植即无声失效，时钟无开=写寄存器静默丢弃；规矩=模块文件内 GPIO_Init 配对本组时钟使能，幂等可重复）；总 85 条
+- validator：firmware 22 文件全 0V0W PASS+ports 3 文件 PASS（**首个核心业务零违规工程**）+bsp 7 文件 2V（board_bq76940_gpio 真实轻微 GPIO 时钟、board_comm g_can_ctx 误报→坑 84 记录判定规则）+1W（drain FIFO 事件驱动豁免）
+- SKILL.md 资源表 damiao 行后加 bms-bq769x0-hal.md 行+known-pitfalls 行 82→85；README 能力表新增「电池管理系统（BMS）」行+坑 82→85 三处+知识层 28→29 篇+文件树加行（顺手修 L214-216 缩进 │ 错位）
+- 注：本轮仅 commit+push 上库，不打 tag 不发 Release（用户要求不发行公开版本）
+
 ## v0.10.7 达妙电机机器人沉淀（不发版：仅代码上库，无 tag/Release）
 
 - 来源：D:\stm32project\f407-rod-support-master\（推板机器人控制固件，STM32F407ZET6 + SPL + FreeRTOS V202212 + Keil + OpenOCD/CMSIS-DAP）：**技能库首个达妙 DM 电机样本 + 首个 ESP-NOW 无线串口桥样本 + 首个 CH9121 网口模块样本 + 首个 OpenOCD 命令行烧录样本 + 首个 validator 零违规工程**
