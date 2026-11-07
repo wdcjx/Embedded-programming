@@ -18,6 +18,15 @@
   *          放入含标准库的实际工程后即消除；详见 README 常见问题。
   ******************************************************************************
   */
+/* === EMBED MANIFEST ===
+module: main
+track: spl
+mcu: STM32F103C8T6 (md)
+pins: PC13 (LED, OUT_PP), PA9 (USART1_TX, AF_PP), PA10 (USART1_RX, IN_FLOATING)
+vectors: SysTick_Handler
+clocks: RCC_APB2Periph_GPIOC, RCC_APB2Periph_GPIOA, RCC_APB2Periph_USART1
+depends: stm32f10x_rcc.c, stm32f10x_gpio.c, stm32f10x_usart.c
+=== END MANIFEST === */
 #include "stm32f10x.h"
 
 #include <stdio.h>

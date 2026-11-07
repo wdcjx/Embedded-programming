@@ -110,11 +110,11 @@
 |---|---|---|---|
 | ① 结构层 | SKILL.md 每次会话强制加载：工作流程、硬约束、自检清单 | 模式路由（SPL/HAL × 裸机/RTOS 四轨）、交付四件套（代码+接线表+烧录方式+未编译声明）、默认假设芯片与引脚表先行 | 硬性，不依赖模型状态 |
 | ② 知识层 | 29 篇 references 按需注入（资源表=路由表：生成 F4 先读 f4-family-notes、写 ISR 前读 isr-and-concurrency-rules） | 领域正确性：外设时序、RTOS 原语、85 条实测坑的反面模式 | 生成对应领域代码时命中 |
-| ③ 客观层 | validator 脚本跑生成的每个 .c 文件，**VIOLATION 清零才交付** | 时钟顺序、volatile、ISR 阻塞、等待超时、NVIC 分组、向量名等约 20 类可静态判定的纪律 | 机器兜底，不采信模型自述 |
+| ③ 客观层 | validator 脚本跑生成的每个 .c 文件，**VIOLATION 清零才交付**；多文件工程自动聚合所有 EMBED MANIFEST 声明块做跨文件检查 | 单文件：时钟顺序、volatile、ISR 阻塞、等待超时、NVIC 分组、向量名等约 20 类；跨文件：引脚冲突、中断向量重复 | 机器兜底，不采信模型自述 |
 
 **诚实的边界**（写在这里而不是藏起来）：
 
-1. **跨文件一致性是弱项**——A 文件用 PB3、B 文件又配 PB3 这类引脚冲突，validator 是单文件分析看不见（坑 76 即此案例）。对策已写进自检清单：生成前出全工程引脚表，每加一个外设先对照。
+1. **跨文件一致性曾是最大盲区**——A 文件用 PB3、B 文件又配 PB3 这类引脚冲突（坑 76 即此案例）。v0.11.1 起已有机器解法：交付的每个 .c 头部带机器可读 EMBED MANIFEST 块（声明本文件占用的引脚/向量），validator 聚合所有块自动查跨文件冲突；存量无块工程仍是弱项，靠自检清单的全工程引脚表对照。
 2. **validator 查纪律，不查逻辑**——PID 方向、状态机转移、协议字段这类业务正确性它不管，靠模型+你的实测。
 3. **超长一次性生成会衰减**——上千行的细节纪律（U 后缀、volatile 逐一核查）随长度松弛，这是所有模型的物理规律。
 
@@ -226,11 +226,14 @@ embed/                                # 单一技能：快速生成 + 工程纪�
 ├── examples/
 │   └── blink_uart_demo/main.c         # bring-up 试例：点灯 + 串口打印版本/编译时间/运行时长
 ├── scripts/
-│   └── validate_generated.py         # 静态纪律检查（VIOLATION 必须清零，含 RTOS/HAL 规则）
+│   ├── validate_generated.py         # 静态纪律检查（VIOLATION 必须清零，含 RTOS/HAL 规则与 MANIFEST 聚合）
+│   └── ci_check.py                   # CI 回归：六样本基线 + 聚合基线 + 仓库一致性
 └── tests/
     ├── bad_sample.c                  # 裸机违规自测样本
     ├── bad_sample_rtos.c             # RTOS 违规自测样本
-    └── bad_sample_hal.c              # HAL 违规自测样本
+    ├── bad_sample_hal.c              # HAL 违规自测样本
+    ├── project_conflict/             # 聚合样本：两文件抢 PA9（坑 76 场景），--dir 必报冲突
+    └── manifest_ok/                  # 聚合样本：引脚/向量无交集，--dir 应 PASS
 ```
 
 </details>
@@ -265,22 +268,26 @@ complete, discipline-checked firmware on its own.
 
 Discipline does not rely on the model behaving well — it is enforced by
 three layers: **① structure** (SKILL.md workflow/hard constraints/checklist
-loaded every session), **② knowledge** (26 on-demand reference docs routed
+loaded every session), **② knowledge** (29 on-demand reference docs routed
 by domain), **③ objective** (the validator script — VIOLATION must reach
-zero before delivery).
+zero before delivery; for multi-file projects it also aggregates the
+machine-readable `EMBED MANIFEST` block in each delivered file to catch
+cross-file pin conflicts and duplicate interrupt vectors).
 
 - `scripts/validate_generated.py` — a static discipline checker
   (clock-enable order, volatile/ISR discipline, blocking-in-ISR,
   busy-wait timeouts, NVIC grouping, vector names, HAL callbacks,
   RTOS API misuse). Code ships only when **VIOLATION count is zero**
-- `references/known-pitfalls.md` — **79 field-tested pitfalls**, each
+- `references/known-pitfalls.md` — **85 field-tested pitfalls**, each
   with symptom / root cause / fix, harvested from 20+ real open-source
   and user projects (quadcopter, balance car, FOC motor, smartwatch,
   bus analyzer, heater controller, industrial Modbus/CAN nodes…)
-- Known blind spots are documented honestly: cross-file pin conflicts
-  and business logic are outside static checking, so the recommended
-  workflow is iterative module-by-module generation (each round ships
-  with validator output)
+- Since v0.11.1 multi-file deliverables carry a machine-readable
+  `EMBED MANIFEST` block per file, so cross-file pin conflicts and
+  duplicate vectors are caught by aggregation instead of eyeballing;
+  known blind spots (business logic) are documented honestly, and the
+  recommended workflow is iterative module-by-module generation (each
+  round ships with validator output)
 - CI regression on every push pins the checker baseline and keeps docs
   and indexes consistent
 

@@ -447,6 +447,76 @@ def analyze(path, text, vectors, findings, irq_owner):
                 "中断/回调内禁止 HAL_Delay")
 
 
+# ---------- EMBED MANIFEST 聚合检查（多文件工程） ----------
+# 生成代码约定：每个交付 .c/.h 头部可携带机器可读声明块（XRobot manifest 思路，
+# 语言无关的 C 注释形式）。validator 在多文件/--dir 模式下自动聚合所有块，
+# 检测跨文件引脚冲突与中断向量重复——单文件分析覆盖不到的盲区（坑 76/59 家族）。
+MANIFEST_RE = re.compile(
+    r"/\*\s*===\s*EMBED MANIFEST\s*===\s*\n(.*?)===\s*END MANIFEST\s*===\s*\*/",
+    re.S)
+PIN_RE = re.compile(r"\bP[A-I]\d{1,2}\b")
+MANIFEST_LIST_KEYS = ("pins", "vectors", "clocks", "depends")
+
+
+def parse_manifest(text):
+    """提取文件头部 EMBED MANIFEST 块。
+
+    返回 {module, track, mcu, pins:[...], vectors:[...], clocks:[...], depends:[...]}
+    或 None（无块）。pins 项形如 `PA9 (USART1_TX, AF_PP)`；vectors/clocks/depends
+    为逗号分隔列表；其余键按标量收最近一次出现。
+    """
+    m = MANIFEST_RE.search(text)
+    if not m:
+        return None
+    out = {k: [] for k in MANIFEST_LIST_KEYS}
+    for line in m.group(1).splitlines():
+        if ":" not in line:
+            continue
+        key, _, val = line.partition(":")
+        key, val = key.strip().lower(), val.strip()
+        if not val:
+            continue
+        if key in MANIFEST_LIST_KEYS:
+            out[key].extend(x.strip() for x in val.split(",") if x.strip())
+        else:
+            out[key] = val
+    return out
+
+
+def cross_check(manifests, findings):
+    """跨文件聚合：同一引脚/同一中断向量被多个文件声明 -> VIOLATION。
+
+    manifests: {显示名: parse_manifest 结果}。同文件内声明多个引脚合法；
+    pins 项带括号描述（含逗号）也没关系——每段独立用 PIN_RE 提取引脚名，
+    匹配不到的描述文字直接忽略。
+    """
+    if len(manifests) < 2:
+        return
+    pin_owner = {}
+    vec_owner = {}
+    for name, mf in manifests.items():
+        for item in mf.get("pins", []):
+            pm = PIN_RE.search(item)
+            if pm:
+                pin_owner.setdefault(pm.group(0), set()).add(name)
+        for v in mf.get("vectors", []):
+            vec_owner.setdefault(v.strip(), set()).add(name)
+    for pin in sorted(pin_owner):
+        owners = pin_owner[pin]
+        if len(owners) > 1:
+            findings.append(("PROJECT(聚合)", 0, VIOL,
+                             f"引脚冲突: {pin} 被多个文件声明占用 -> "
+                             + ", ".join(sorted(owners))
+                             + "（复用引脚必须只在一个模块中初始化，其余模块仅引用）"))
+    for v in sorted(vec_owner):
+        owners = vec_owner[v]
+        if len(owners) > 1:
+            findings.append(("PROJECT(聚合)", 0, VIOL,
+                             f"中断向量重复: {v} 在多个文件声明 -> "
+                             + ", ".join(sorted(owners))
+                             + "（一个向量只能有一个实现文件）"))
+
+
 def main(argv=None):
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")
@@ -472,6 +542,7 @@ def main(argv=None):
 
     findings = []  # (file, line, level, msg)
     irq_owner = {}
+    manifests = {}  # 显示名 -> parse_manifest 结果（多文件工程聚合用）
     checked = 0
     skipped = 0
     # 库/中间件目录不检查：时钟使能由应用层负责，厂商库源码没有 RCC 调用是正常的
@@ -491,6 +562,12 @@ def main(argv=None):
             continue
         checked += 1
         analyze(p, neutralize(raw), vectors, findings, irq_owner)
+        mf = parse_manifest(raw)
+        if mf:
+            mf_name = mf.get("module") or p.name
+            manifests[f"{mf_name} ({p.name})"] = mf
+
+    cross_check(manifests, findings)
 
     by_file = {}
     for f, line, level, msg in findings:
@@ -502,6 +579,12 @@ def main(argv=None):
     n_v = sum(1 for x in findings if x[2] == VIOL)
     n_w = sum(1 for x in findings if x[2] == WARN)
     print(f"-- 检查文件: {checked}  违规(VIOLATION): {n_v}  警告(WARNING): {n_w} --")
+    if manifests:
+        print(f"-- EMBED MANIFEST: {len(manifests)}/{checked} 个文件携带声明块，"
+              f"已做跨文件引脚/向量聚合检查 --")
+    elif checked > 1:
+        print("-- EMBED MANIFEST: 无文件携带声明块（建议多文件工程按 SKILL.md 约定补块，"
+              "可检测跨文件引脚冲突）--")
     if skipped:
         print(f"-- 已跳过库/中间件目录文件: {skipped}（厂商库不参与纪律检查）--")
     if checked == 0:

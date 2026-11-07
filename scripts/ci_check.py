@@ -13,6 +13,8 @@ CI 中由 .github/workflows/ci.yml 调用，exit 0 = 全部通过。
   3. known-pitfalls.md 坑编号连续 1..N（无重号/跳号）
   4. README.md 中坑计数声明 == known-pitfalls.md 实际条数（防忘更新）
   5. README.md 文件树覆盖 references/ 全部文档（防新增文档忘加文件树行）
+  6. validator EMBED MANIFEST 聚合基线（--dir 两样本目录：冲突组必须 FAIL 且
+     报引脚冲突；干净组必须 PASS——防聚合规则漂移）
 """
 import os
 import re
@@ -95,6 +97,30 @@ ref_names = {f for f in os.listdir(os.path.join(ROOT, 'references'))
 not_in_readme = sorted(ref_names - readme_md_names)
 check('README 文件树覆盖 references 全部文档', not not_in_readme,
       f'README 未提及: {not_in_readme}' if not_in_readme else '')
+
+# ---------- 6. validator EMBED MANIFEST 聚合基线 ----------
+# (目录, 预期判定, 预期 VIOLATION, 预期 WARNING, 额外断言的输出关键词)
+AGG_BASELINE = [
+    ('tests/project_conflict', 'FAIL', 1, 0, '引脚冲突'),
+    ('tests/manifest_ok',      'PASS', 0, 0, '聚合检查'),
+]
+for rel, verdict, exp_v, exp_w, keyword in AGG_BASELINE:
+    d = os.path.join(ROOT, rel)
+    if not os.path.isdir(d):
+        check(f"validator 聚合: {rel} 存在", False, '目录缺失')
+        continue
+    r = subprocess.run([sys.executable, VAL, '--dir', d],
+                       capture_output=True, text=True,
+                       encoding='utf-8', errors='replace')
+    m = re.search(r'违规\(VIOLATION\):\s*(\d+)\s+警告\(WARNING\):\s*(\d+)', r.stdout)
+    v = re.search(r'结果:\s*(PASS|FAIL)', r.stdout)
+    got_verdict = v.group(1) if v else '?'
+    got_v = int(m.group(1)) if m else -1
+    got_w = int(m.group(2)) if m else -1
+    ok = (got_verdict == verdict and got_v == exp_v and got_w == exp_w
+          and keyword in r.stdout)
+    check(f"validator 聚合: {rel} -> {verdict} V={exp_v} W={exp_w} 含「{keyword}」",
+          ok, f"实际 {got_verdict} V={got_v} W={got_w}" if not ok else '')
 
 print()
 if failures:

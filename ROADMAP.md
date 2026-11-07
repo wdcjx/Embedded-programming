@@ -2,6 +2,17 @@
 
 > 使用中持续完善。完成打 [x]，进行中打 [~]，未开始留 [ ]。
 
+## v0.11.1 XRobot 参考改进：EMBED MANIFEST 聚合检查（不发版：仅代码上库，无 tag/Release）
+
+- 来源：D:\stm32project\XRobot-XRobot2.0\（xrobot-org 模块化机器人框架的工具链，Python；不是 STM32 工程，是**同类代码生成系统**——声明式配置→确定性生成→git 仓库即模块包）。用户（m05789）确认「有用的直接引用，C++ 的不参考」——落地取其语言无关机制
+- 学到的三件事：①幂等性（同一配置永远生成同一代码）vs Agent 跨会话漂移；②元数据随文件走（头注释内嵌机器可读 manifest 块）→ 跨文件聚合检查可解单文件分析盲区；③值语义标注（@ref/{expr:}/{constexpr:}/{string:}）。不学的：多源索引（单仓库无需求）、脚手架脚本（Agent 等价）、PyPI 发布链（渠道不同）
+- **validator 新增 EMBED MANIFEST 聚合检查**（validate_generated.py +80 行，纯标准库零依赖）：`/* === EMBED MANIFEST === ... === END MANIFEST === */` 行式 key:value 块（module/track/mcu/pins/vectors/clocks/depends）；多文件或 --dir 模式自动解析+聚合：**跨文件同一引脚→VIOLATION 引脚冲突、同一中断向量→VIOLATION 重复**（正对坑 76 死码引脚冲突/坑 59 MspInit 抢占/坑 85 时钟顺序依赖三大跨文件盲区）；单文件模式行为不变（向后兼容）；输出含 manifest 覆盖率提示
+- tests 新增两组聚合回归样本：project_conflict/（usart_echo.c 与 lcd_key.c 抢 PA9——坑 76 场景机器可读版，--dir 必报 FAIL 1V）+ manifest_ok/（tim_pwm.c 与 key_exti.c 无交集，PASS）；**ci_check.py 新增第 6 项聚合基线**（判定/V/W 数/关键词三重断言），13 项全 PASS
+- templates/main.c 头部加示范 MANIFEST 块（单文件基线 PASS 0V1W 不变）
+- SKILL.md 新增「工程级约定」节：①EMBED MANIFEST 块格式+写法规矩（只写本文件占用的、main.c 不写全工程汇总表、无则 (none) 占位）；②project.yaml 工程状态文件约定（芯片/密度/HSE/引脚总表/外设实例/RTOS/已生成清单，开工先读收工更新，值语义 @ref/{constexpr:}/{expr:}/{string:}）+自检清单加聚合检查项
+- README：三层防线表客观层行加聚合能力+诚实边界第 1 条改写（「曾是最大盲区」→已有机器解法，存量无块工程仍是弱项）+文件树加 scripts/ci_check.py 与 tests 两目录行+英文段 Quality gate 同步（并修 26→29 篇、79→85 坑两处过时计数）
+- 注：本轮仅 commit+push 上库，不打 tag 不发 Release
+
 ## v0.10.8 PackLink-BMS 电池管理系统沉淀（不发版：仅代码上库，无 tag/Release）
 
 - 来源：D:\stm32project\stm32-freertos-bms-packlink-master\（磐链电池包安全监测与边缘诊断系统，STM32F103C8T6 + BQ76940 9 串 + HAL + FreeRTOS CMSIS_V2 + Keil，实物联调完成，配套 Qt 上位机+微信小程序+docs 25 篇编号文档）：**技能库首个 BMS/AFE 样本 + 首个带单元测试工程（36 用例 2065 行）+ 首个五层架构业务样本**

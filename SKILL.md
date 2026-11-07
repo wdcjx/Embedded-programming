@@ -48,10 +48,37 @@ description: 嵌入式开发辅助技能：为 STM32 单片机生成完整可编
 - NVIC 优先级分组上电最先配置一次；IRQHandler 名与启动文件向量表逐字符一致且全工程仅一份。
 - **RTOS 组合（SPL+FreeRTOS）**：SysTick/PendSV/SVC 归内核（FreeRTOSConfig.h 三宏接管，用户代码不得再定义这三个 Handler）；中断内只用 FromISR API + `portEND_SWITCHING_ISR(woken)`，且抢占优先级数字 ≥ configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY(5)；任务延时只用 `vTaskDelay`；裸机 delay_init/millis 节拍整体移除。
 
+## 工程级约定（多文件交付时）
+
+### EMBED MANIFEST 声明块（机器可读）
+
+交付含 ≥2 个 .c 的工程时，每个 .c 头部（include 之前）写一块；validator 多文件/`--dir` 模式会自动聚合所有块，跨文件查引脚冲突与向量重复（单文件分析覆盖不到的盲区）：
+
+```c
+/* === EMBED MANIFEST ===
+module: usart1_echo
+track: spl
+mcu: STM32F103C8T6 (md)
+pins: PA9 (USART1_TX, AF_PP), PA10 (USART1_RX, IN_FLOATING)
+vectors: USART1_IRQHandler
+clocks: RCC_APB2Periph_USART1, RCC_APB2Periph_GPIOA
+depends: stm32f10x_rcc.c, stm32f10x_usart.c
+=== END MANIFEST === */
+```
+
+- `pins` 写本文件初始化/占用的引脚：`引脚名 (用途, GPIO模式)`，逗号分隔；**不占用的不写**（main.c 不写全工程汇总表，只写自己占用的）。无则写 `vectors: (none)` 式占位。
+- `vectors` 写本文件实现的中断向量名；无则 `(none)`。
+- 块格式为行式 `key: value`（无 YAML 依赖，validator 纯标准库解析）。
+
+### project.yaml 工程状态文件（跨会话幂等）
+
+同一工程多轮迭代时，在工程根维护 `project.yaml`：芯片/密度宏/HSE/引脚分配总表（谁占哪个脚）/外设实例清单/RTOS 配置/已生成文件清单。**开工先读它**（恢复上轮状态，不靠对话记忆），**改动落盘后更新它**。值语义：引用实例写 `@usart1`，常量写 `{constexpr: 72000000}`，表达式写 `{expr: ...}`，字符串写 `{string: ...}`。
+
 ## 自检清单（交付前逐项过）
 
 - [ ] 芯片型号、HSE、密度宏/启动文件已确认或声明为默认假设
 - [ ] 引脚分配表完整、无冲突；时钟使能在一切配置之前
+- [ ] 多文件工程：每个 .c 带 EMBED MANIFEST 块，validator 聚合检查 0 冲突
 - [ ] GPIO 模式/速度在外设使用之前配置
 - [ ] NVIC 分组最先配置一次；IRQHandler 名与向量表一致且全工程仅一份
 - [ ] 共享变量 volatile + 保护方式明确；所有等待有超时与失败分支
