@@ -100,7 +100,7 @@
 | **工业通信与计量** | FreeModbus RTU 从机移植（BARE 四 port 文件职责/三件套契约/寄存器数组界面/RS485 方向钩子警示）、CAN 收发（位时序公式 baud=PCLK/(PSC×(1+BS1+BS2))/F1 收脚上拉输入与 USB 共用向量/过滤器组态/邮箱收发）、HLW8110 智能配电单元架构（Modbus 参数 EEPROM 化+IAP 从机 VTOR+四串口分工）、WS2812B PWM+DMA 双缓冲乒乓模板（99 行全量）、RC522 RFID 流程与 osDelay 宏适配、开源仓库不完整性检查（arm32_open 26 子工程横评） | ✅ 文件级（v0.10.3，Modbus+CAN 首见） |
 | **达妙电机与伺服执行器** | 推板机器人控制固件（F407ZET6 SPL+FreeRTOS，**首个 validator 零违规工程**）：达妙 DM 电机 MIT 协议全解（8B 位域帧 p16/v12/Kp12/Kd12/t12+float↔uint 线性映射+使能 0xFC/失能 0xFD/设零 0xFE+反馈状态码）、使能重试（上电 1~2s 启动窗口帧全丢）、多圈累计位置（±P_MAX 回绕补偿）、ID 扫描双模式（CAN ACK≠认帧）、PI 力矩前馈实测数据、CAN 诊断十连命令（CANERR/LOOPTEST 内部回环/CANSCOPE DWT 示波器/STB 五态扫描——"每条命令只切一刀"方法论）、NART 邮箱锁死与 CAN_Prescaler 语义两颗实战金坑、ESP-NOW 无线串口桥、CH9121 网口模块 TCP 流切包+单读者设计、OpenOCD 命令行烧录（Keil 5.20 驱动认不出新 DAPLink 的解法+ASCII 路径规矩） | ✅ 推板机器人实测（v0.10.7，达妙/ESP-NOW/网口模块/OpenOCD 首见） |
 | **电池管理系统（BMS）** | PackLink-BMS（F103C8T6+BQ76940 9 串，HAL+FreeRTOS，**首个 BMS/AFE 样本+首个带单元测试工程**）：BQ769x0 驱动全解（9S 逻辑→VC 通道索引表/GAIN+OFFSET 每次采样重读抗漂移/OV-UV trip 逆换算/SYS_STAT 映射/均衡寄存器 idx÷5 选位/wake 时序）、依赖注入三通道（运行时 bind/ops 虚表/__weak 存储钩子→业务零 HAL 依赖）、软件保护回差策略+手动 MOS 与保护优先级（开 MOS 必清锁存）、SOC 双路径（OCV 七点重锚+安时积分）、通信三协议共享命令处理器（RS485 ASCII/50B 工具帧/CAN 0x01~07+0x101 ACK）、BQRAW 诊断事务=volatile 标志+跳拍软互斥、36 用例 fail-fast 手写 runner+fake 后端注入、裸机/RTOS 双模式同一套业务 | ✅ BMS 工程实测（v0.10.8，BQ769x0/单元测试首见） |
-| **工程纪律与静态检查** | `validate_generated.py`：时钟使能顺序、volatile/ISR 纪律、ISR 阻塞调用、等待超时、NVIC 分组、向量名、HAL 回调、RTOS API 误用——VIOLATION 清零才交付；坑清单 85 条（每条症状/原因/修法）；症状速查 14 条反查表；`__HAL_LOCK`/Mutex/临界区/栈堆精算/Cache+DMA 现场可靠性知识 | ✅ 6 个自测样本持续回归 |
+| **工程纪律与静态检查** | `validate_generated.py`：时钟使能顺序、volatile/ISR 纪律、ISR 阻塞调用、等待超时、NVIC 分组、向量名、HAL 回调、RTOS API 误用——VIOLATION 清零才交付；坑清单 86 条（每条症状/原因/修法）；症状速查 14 条反查表；`__HAL_LOCK`/Mutex/临界区/栈堆精算/Cache+DMA 现场可靠性知识 | ✅ 6 个自测样本持续回归 |
 
 ## 纪律是怎么保证的：三层防线
 
@@ -109,7 +109,7 @@
 | 层 | 机制 | 管什么 | 强度 |
 |---|---|---|---|
 | ① 结构层 | SKILL.md 每次会话强制加载：工作流程、硬约束、自检清单 | 模式路由（SPL/HAL × 裸机/RTOS 四轨）、交付四件套（代码+接线表+烧录方式+未编译声明）、默认假设芯片与引脚表先行 | 硬性，不依赖模型状态 |
-| ② 知识层 | 29 篇 references 按需注入（资源表=路由表：生成 F4 先读 f4-family-notes、写 ISR 前读 isr-and-concurrency-rules） | 领域正确性：外设时序、RTOS 原语、85 条实测坑的反面模式 | 生成对应领域代码时命中 |
+| ② 知识层 | 30 篇 references 按需注入（资源表=路由表：生成 F4 先读 f4-family-notes、写 ISR 前读 isr-and-concurrency-rules） | 领域正确性：外设时序、RTOS 原语、86 条实测坑的反面模式 | 生成对应领域代码时命中 |
 | ③ 客观层 | validator 脚本跑生成的每个 .c 文件，**VIOLATION 清零才交付**；多文件工程自动聚合所有 EMBED MANIFEST 声明块做跨文件检查 | 单文件：时钟顺序、volatile、ISR 阻塞、等待超时、NVIC 分组、向量名等约 20 类；跨文件：引脚冲突、中断向量重复 | 机器兜底，不采信模型自述 |
 
 **诚实的边界**（写在这里而不是藏起来）：
@@ -162,7 +162,7 @@
 ## 反馈与社区
 
 - 问题/建议：[Issues](https://github.com/wdcjx/Embedded-programming/issues)——提问前先搜
-  [references/known-pitfalls.md](references/known-pitfalls.md)（85 条实测坑）与
+  [references/known-pitfalls.md](references/known-pitfalls.md)（86 条实测坑）与
   [references/symptom-quickref.md](references/symptom-quickref.md)（症状反查表）；
 - 经验交流/求助：[Discussions](https://github.com/wdcjx/Embedded-programming/discussions)；
 - 想沉淀自己的实测工程或增强 validator：规矩见 [CONTRIBUTING.md](CONTRIBUTING.md)。
@@ -212,6 +212,7 @@ embed/                                # 单一技能：快速生成 + 工程纪�
   ├── usv-autonomous-boat-spl.md  # USV 无人水面艇（GPS UBX/Madgwick/遥控捕获首见）：五频时间片/Eastar 链路/低有效 PWM
   ├── damiao-motor-can-f4-spl.md  # 达妙电机机器人（达妙 MIT 协议/ESP-NOW 桥/网口模块/OpenOCD 首见）：CAN 诊断十连/首个零违规工程
   ├── bms-bq769x0-hal.md          # PackLink-BMS 电池管理（BQ769x0 AFE/单元测试首见）：依赖注入三通道/保护回差/SOC 双路径/36 用例
+  ├── portable-lib-design.md       # 可移植单文件库设计范式（MultiButton 全解）：事件回调/位域压缩/锁外回调/mock 单测
   ├── spl-peripheral-checklist.md   # 外设初始化顺序清单（纪律）
   ├── isr-and-concurrency-rules.md  # ISR/并发/volatile/临界区规则（纪律）
   └── known-pitfalls.md             # 已知坑清单（纪律）
@@ -268,7 +269,7 @@ complete, discipline-checked firmware on its own.
 
 Discipline does not rely on the model behaving well — it is enforced by
 three layers: **① structure** (SKILL.md workflow/hard constraints/checklist
-loaded every session), **② knowledge** (29 on-demand reference docs routed
+loaded every session), **② knowledge** (30 on-demand reference docs routed
 by domain), **③ objective** (the validator script — VIOLATION must reach
 zero before delivery; for multi-file projects it also aggregates the
 machine-readable `EMBED MANIFEST` block in each delivered file to catch
@@ -278,7 +279,7 @@ cross-file pin conflicts and duplicate interrupt vectors).
   (clock-enable order, volatile/ISR discipline, blocking-in-ISR,
   busy-wait timeouts, NVIC grouping, vector names, HAL callbacks,
   RTOS API misuse). Code ships only when **VIOLATION count is zero**
-- `references/known-pitfalls.md` — **85 field-tested pitfalls**, each
+- `references/known-pitfalls.md` — **86 field-tested pitfalls**, each
   with symptom / root cause / fix, harvested from 20+ real open-source
   and user projects (quadcopter, balance car, FOC motor, smartwatch,
   bus analyzer, heater controller, industrial Modbus/CAN nodes…)

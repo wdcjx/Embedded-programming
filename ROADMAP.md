@@ -2,6 +2,15 @@
 
 > 使用中持续完善。完成打 [x]，进行中打 [~]，未开始留 [ ]。
 
+## v0.11.2 MultiButton 沉淀 + Awesome-Embedded 舍弃（不发版：仅代码上库，无 tag/Release）
+
+- 来源：用户（m05921）「参考这个，如果有用的，你可以沉淀；如果没用，你就舍弃」给两个 Downloads 仓库
+- **Awesome-Embedded-master：舍弃**——纯外链导航清单（面试题/书籍/博客链接合集），对代码生成技能无增量（Agent 靠知识库生成代码，不靠链接列表），已向用户说明理由
+- **MultiButton 1.1.1：沉淀**（0x1abin 单文件按键事件库，.c+.h 共 437 行，validator 0V0W——技能库首个零警告文件）。新建 references/portable-lib-design.md（13 节）：一行集成（函数指针注入硬件）/7 事件+每事件独立回调+user_data（即时事件沿上发、归纳事件超时发的二分语义）/5 状态状态机全解表（SHORT_TICKS=双击窗口、LONG_TICKS=长按阈值、REPEAT 降级重计长按）/位域压缩 16 位 6 字段+DEBOUNCE_TICKS>7 的 #error 编译期契约/计数滤波去抖（节拍域非阻塞）/防御细节（ticks 饱和递增防回绕、default 态自愈、判空全覆盖、初值!active_level）/可选线程安全（宏注入 LOCK/UNLOCK+**回调一律锁外执行**防死锁+遍历快照式细粒度持锁）/二级指针删链表节点/单元测试三板斧（mock 读脚+tick_n 快进+事件日志断言，与 BMS fake 注入同族）/1.0 真 bug 存档/库式 vs 工程式按键选型表/生成检查单 7 条
+- known-pitfalls.md 新增坑 86（状态机转移忘重置计时器/计数器：MultiButton 1.0 REPEAT→PRESS 残留 ticks 导致连击后按住立即误发长按，1.1.0 两行修复；单态各测都对、跨态序列才炸，上板难覆盖恰是 mock 快进单测能廉价复现的；规矩=每条转移写携带状态清单（清什么/留什么两列对齐）+两态共用计数器默认清零）；总 86 条
+- SKILL.md 资源表加 portable-lib-design.md 行（bms 行后，≤40 字触发式）+known-pitfalls 行 85→86；README 三层防线知识层 29→30 篇+坑计数 85→86 三处+英文段 29→30/85→86+文件树加行；ROADMAP 本节
+- 注：本轮仅 commit+push 上库，不打 tag 不发 Release
+
 ## v0.11.1 XRobot 参考改进：EMBED MANIFEST 聚合检查（不发版：仅代码上库，无 tag/Release）
 
 - 来源：D:\stm32project\XRobot-XRobot2.0\（xrobot-org 模块化机器人框架的工具链，Python；不是 STM32 工程，是**同类代码生成系统**——声明式配置→确定性生成→git 仓库即模块包）。用户（m05789）确认「有用的直接引用，C++ 的不参考」——落地取其语言无关机制
