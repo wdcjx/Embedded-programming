@@ -2,6 +2,14 @@
 
 > 使用中持续完善。完成打 [x]，进行中打 [~]，未开始留 [ ]。
 
+## v0.11.4 技能自更新指令（不发版：仅代码上库，无 tag/Release）
+
+- 来源：用户（m06203）「别人下载这个技能之后，输入更新指令，他的电脑上可以同步我的仓库更新」
+- 实测确认 skills CLI 原生 `update`（别名 `upgrade`）子命令存在，基于 `skills-lock.json` 拉最新覆盖
+- SKILL.md 新增「自更新」节：用户说「更新 embed 技能」时 Agent 按安装方式执行——git 目录 `git pull`；skills CLI 安装提示/代跑 `npx skills update embed`；DSH 安装重贴 URL；更新后读 ROADMAP 头报告 vX→vY 摘要
+- README 安装节两处补更新说明（中文节+英文 Install 节）
+- 零新文件、零计数变化（坑仍 88、知识层仍 30 篇）
+
 ## v0.11.3 mcu_quick_start + KW407A 教程增量沉淀（不发版：仅代码上库，无 tag/Release）
 
 - 来源：用户（m06101）「参考这个，如果有用的，你可以沉淀；如果没用，你就舍弃」给两个 Downloads 仓库

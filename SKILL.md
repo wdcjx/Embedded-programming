@@ -135,6 +135,16 @@ depends: stm32f10x_rcc.c, stm32f10x_usart.c
 | `scripts/validate_generated.py` | 静态纪律检查（VIOLATION 清零才交付；厂商库自动跳过） |
 | `tests/bad_sample*.c` | 故意违规样本，自测检查脚本用 |
 
+## 自更新（用户说"更新 embed 技能"时执行）
+
+用户请求更新本技能时，按安装方式同步，不要凭记忆复述版本：
+
+1. 定位技能目录：依次探测 `~/.claude/skills/embed`、`~/.dsh/skills/embed`、当前会话技能加载路径。
+2. 目录内有 `.git` → 在该目录执行 `git pull origin main`（网络失败重试 2~3 次；被本地修改挡住时提示用户选择）。
+3. 目录内无 `.git`（skills CLI / DSH 技能库安装的拷贝）→ 请用户执行 `npx skills update embed`，或经确认后台代跑；DSH 安装的可重新粘贴仓库 URL。
+4. 更新后读 `ROADMAP.md` 顶部版本节，向用户报告「vX → vY」与本轮新增内容摘要（新坑条数/新文档/新规则）。
+5. 更新不会带走用户工程文件（技能目录只读引用），无需备份。
+
 ## 维护与沉淀
 
 随使用逐步完善：发现 API 写法有误、新配方/新坑/检查规则改进时，**征得用户同意后**更新对应文件，

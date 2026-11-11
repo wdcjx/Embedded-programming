@@ -64,6 +64,7 @@
   npx skills add wdcjx/Embedded-programming
   ```
   已实测：自动识别技能名 `embed`，完整带上 `references/`、`scripts/`（validator）、`templates/` 等子目录，并生成 `skills-lock.json` 便于团队复现。
+  **更新**：`npx skills update embed` 拉取最新版；或者直接对 Agent 说「更新 embed 技能」，技能自带自更新指令（见 SKILL.md）。
 - **DeepSeek Harness (DSH)**：侧边栏「技能库」→ 粘贴仓库链接 `https://github.com/wdcjx/Embedded-programming` 安装（自动克隆 + 热加载），
   或把整个 `embed` 文件夹放到 `~/.dsh/skills/embed`；
 - **手动**：`git clone https://github.com/wdcjx/Embedded-programming.git`，把克隆出的文件夹改名为 `embed` 放到 `~/.claude/skills/`（或 `~/.dsh/skills/`）。
@@ -297,6 +298,8 @@ cross-file pin conflicts and duplicate interrupt vectors).
 ```bash
 npx skills add wdcjx/Embedded-programming
 ```
+
+Update later with `npx skills update embed` (or just ask your agent to "update the embed skill" - it ships with self-update instructions).
 
 Or clone, rename the folder to `embed`, and drop it into
 `~/.claude/skills/` (or `~/.dsh/skills/`).
