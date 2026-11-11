@@ -106,6 +106,41 @@ west build -p always -b rocket_pi --sysbuild with_mcuboot  # MCUboot 组合构�
 - 目录：`applications/main.c`（Studio hello 模板：`LOG_D` + `rt_thread_mdelay(1000)`，无外设示例）/ `drivers/`（官方 BSP 全套 drv_adc/can/clk/gpio/lcd/pwm/sdio/spi/usart/wdt…+ board.c/board.h）/ `linkscripts/STM32F401RE/` / `rt-thread/`（5.1.0 完整内核）/ `.settings/`（Eclipse 配置 + DAPLink/JLink/Qemu/STLink 四套调试 launch）。
 - 与 Keil/CMake 轨的本质差异：**Studio 把内核、BSP 驱动、链接脚本、调试配置全部工程化管理**，用户只写 applications/；代价是被 IDE 绑定。
 
+### RT-Thread Nano 手工集成（2026-11 MCUQuickStart 实证，SPL 工程 + Keil AC5）
+
+Nano = 无设备框架/无组件生态的极简内核（17 个 .c：clock/components/cpu/device/idle/ipc/irq/kservice/mem/memheap/mempool/object/scheduler/signal/slab/thread/timer），板级适配只需一个 `board.c` + 三处钩子，与上面 Studio 完整版的工程化路线互补。
+
+**board.c 核心 `rt_hw_board_init()`（stm32f10x_board.c 全文精华，逐行有据）：**
+
+```c
+void rt_hw_board_init(void)
+{
+    /* M3 上 no-op、M4F 上必须有：不开 CPACR，首次浮点上下文切换 NOCP UsageFault → HardFault */
+    SCB->CPACR |= ((3UL << 10 * 2) | (3UL << 11 * 2));
+    __DSB();
+    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);   /* 全部抢占，RTOS 标准分组 */
+    NVIC_SetPriority(PendSV_IRQn, 0xFF);              /* PendSV 必须最低 */
+    SysTick_Config(SystemCoreClock / RT_TICK_PER_SECOND);
+#ifdef RT_USING_COMPONENTS_INIT
+    rt_components_board_init();
+#endif
+#if defined(RT_USING_USER_MAIN) && defined(RT_USING_HEAP)
+    rt_system_heap_init(rt_heap_begin_get(), rt_heap_end_get());  /* rt_heap[15KB] 静态数组 + RT_WEAK getter */
+#endif
+}
+```
+
+- it.c 侧：`SysTick_Handler → rt_tick_increase()`；PendSV/SVC/HardFault 都在 `context_rvds.S`（HardFault 被 RTT 接管做线程诊断打印）。
+- 控制台：`RT_USING_CONSOLE` 下自建 `console_uart_init()`（SPL GPIO+USART 全套），`rt_hw_console_output` 重定向。
+
+**ARMCC V5（AC5）补丁两处（Nano 3.x 官方 components.c 只认 AC6，坑 87）：**
+
+```c
+#ifdef __ARMCC_VERSION          →   #if defined(__ARMCC_VERSION) || defined(__CC_ARM)
+```
+
+`$Sub$$/$Super$$main` 自动入口段同款修改（两处都在 components.c）。FinSH 默认注释禁用——AC5 是 C90，FinSH 源码 C99 不兼容；AC6/GCC 才放开。
+
 ## 6. base_samples 中间件能力索引（未深读，生成时按此清单指路）
 
 littlefs（内部 flash + W25Q64 两例）· mbedtls（AES/RSA/SHA256）· cjson 串口控灯 · microrl shell（补全/历史）· easylogger 彩色日志 · ymodem 收发 · USB CDC 虚拟串口 · USB MSC（SRAM 介质）· FATFS on SDIO · LVGL on ST7789+摇杆 · MultiButton 按键库 · libdriver 系列（at24cxx/mg58f18 雷达）· sd→i2s 音频+频谱 · 图片轮播 6fps。bootloader 两例（纯跳转 / ymodem IAP）对照 OV-Watch IAP 知识（坑 64/65）。

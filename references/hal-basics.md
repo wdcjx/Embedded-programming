@@ -84,3 +84,55 @@ MDK-ARM/                             # Keil 工程与启动文件
 2. **任务里禁 `HAL_Delay`**：任务延时用 `osDelay`/`vTaskDelay`；`HAL_Delay` 是忙等，只允许在调度器启动前或驱动初始化内部短延时。
 3. 中断/回调优先级数字 ≥5（configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY）才能调 FreeRTOS API 的 FromISR 版本——同 SPL 轨红线。
 4. 其余（内核文件、heap_4、向量接管、FromISR 范式）参照 freertos-spl-integration.md 的通用部分，CubeMX 会代劳文件放置；生成后仍须跑 validate。
+
+## 9. 进阶配方四则（2026-11 KW407A 教程 F407 实例，CubeMX 生成代码实证）
+
+### 9.1 双 ADC 同步采样（ADC1 主 + ADC2 从，一路 DMA 收两路数据）
+
+```c
+ADC_MultiModeTypeDef multimode = {0};
+multimode.Mode = ADC_DUALMODE_REGSIMULT;          /* 规则组同时模式 */
+multimode.DMAAccessMode = ADC_DMAACCESSMODE_2;    /* 每次转换后 DMA 传输（32 位打包）*/
+multimode.TwoSamplingDelay = ADC_TWOSAMPLINGDELAY_5CYCLES;
+HAL_ADCEx_MultiModeConfigChannel(&hadc1, &multimode);
+```
+
+- ADC1 配主通道（可采 Vrefint），ADC2 配从通道；触发源给 ADC1（如 `ADC_EXTERNALTRIGCONV_T3_TRGO` 上升沿），两 ADC 硬件同步转换。
+- DMA 只挂 ADC1；数据寄存器变成 32 位打包（低 16 位=ADC1、高 16 位=ADC2），`HAL_ADCEx_MultiModeGetValue()` 解包。主从各 `NbrOfConversion=1` 单通道循环。
+- 用途：两路信号相位严格对齐的采样（功率计算 V/I、立体声）。
+
+### 9.2 DAC 硬件三角波（不占 CPU，与 DMA 波表两条路线）
+
+```c
+HAL_DACEx_TriangleWaveGenerate(&hdac, DAC_CHANNEL_1, DAC_TRIANGLEAMPLITUDE_4095);
+HAL_DAC_Start(&hdac, DAC_CHANNEL_1);   /* 从 0 开始自动升降计数 */
+```
+
+- 幅度档 1~4095（非连续可选），频率由触发源决定（每次触发走一步）；完全硬件生成。
+- 对照路线：任意波形（正弦 DDS）用软件波表 + DAC DMA（`DMA_MEMORY_TO_PERIPH`，F407 例 DMA1_Stream5/CH7）——pengzhongxin 工程即此路线（audio-dds-fft-hal.md）。
+
+### 9.3 RTC 备份寄存器 + 入侵检测 Tamper
+
+```c
+HAL_RTCEx_BKUPWrite(&hrtc, RTC_BKP_DR2, value);    /* VBAT 域，主电掉电保持 */
+value = HAL_RTCEx_BKUPRead(&hrtc, RTC_BKP_DR2);
+HAL_RTCEx_SetTamper_IT(&hrtc, &sTamper);           /* Tamper 引脚触发 */
+/* 回调：HAL_RTCEx_Tamper1EventCallback —— 触发时硬件自动清全部备份寄存器 */
+```
+
+- 安全语义：Tamper 触发 = 有人撬机箱/探测，**硬件自动擦除 BKP 全部寄存器**（敏感数据自毁）；不要把非敏感配置放 BKP。
+- 经典用法：BKP_DR 存「上次关机时刻」，RTC 不停走，下次上电算关机时长（教程 Demo：DR2/3/4 存时分秒）。
+
+### 9.4 WWDG 窗口看门狗（喂早喂晚都复位，检测「跑太快的程序」）
+
+```c
+hwwdg.Init.Prescaler = WWDG_PRESCALER_8;
+hwwdg.Init.Window    = 100;              /* 允许喂狗的最早计数值 */
+hwwdg.Init.Counter   = 127;              /* 初值（0x40~0x7F）*/
+hwwdg.Init.EWIMode   = WWDG_EWI_ENABLE;  /* 提前唤醒中断：递减到 0x40 触发 */
+HAL_WWDG_Init(&hwwdg);
+```
+
+- 与 IWDG 本质区别：IWDG 只管「太久没喂」；WWDG 还管「喂得太早」——计数必须落在 (Window, 0x3F] 区间内喂才有效，检测任务跑飞到高频循环。
+- EWI（提前唤醒中断）= 复位前最后一次机会：保存现场/记录日志后系统复位。
+- 时基：PCLK1/4096/Prescaler，F407@42MHz PCLK1 /8 ≈ 1.28ms/格。

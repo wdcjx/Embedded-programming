@@ -2,6 +2,19 @@
 
 > 使用中持续完善。完成打 [x]，进行中打 [~]，未开始留 [ ]。
 
+## v0.11.3 mcu_quick_start + KW407A 教程增量沉淀（不发版：仅代码上库，无 tag/Release）
+
+- 来源：用户（m06101）「参考这个，如果有用的，你可以沉淀；如果没用，你就舍弃」给两个 Downloads 仓库
+- **mcu_quick_start（Majie-xixi/MCUQuickStart）：全库沉淀**——跨厂商（STM32/GD32 五系列 43 型号）一键工程生成器，与 embed 技能同生态
+  - stm32-stdperiph-api.md §10 扩充：F10x 九型号全参数表（define/RAM/Flash/启动文件/Keil FlashDriver，RC=48K vs RE=64K RAM 同档不同量的提醒）+ F4 fwlib 裁剪思路（F407VG 剔 fmc/dma2d/ltdc/sai）+ GD32 兼容链（固件库 SPL 同构、HXTAL 8/25M 二选一、与 CH32「同 hex 零改动」路线对照）
+  - rocketpi-rtos-ports.md §5 新增「RT-Thread Nano 手工集成」：Nano=极简内核 17 个 .c；board.c 全文精华（CPACR→NVIC Group_4→PendSV 0xFF→SysTick→heap_init，rt_heap 15KB 静态数组+RT_WEAK getter）；it.c 三钩子（SysTick→rt_tick_increase，PendSV/SVC 在 context_rvds.S）；console_uart_init；ARMCC V5 补丁两处与 FinSH C90 默认关
+  - 坑 87（上游库写死 __ARMCC_VERSION 漏 AC5 的 __CC_ARM：入口挂接静默失效；先 grep 编译器分支再集成）+ 坑 88（M4F 编译开关≠运行时使能：CPACR 没人写，首次浮点上下文切换 NOCP→HardFault；症状=裸机浮点正常、RTOS 任务里炸；与坑 61 成对）
+  - 其 project_validator.py 仅为文件存在性检查（与 validate_generated.py 语义纪律检查不同维度），无新检查项可抄——判定记录在案
+- **Take_you_read_STM32Cube 教程（王维波《STM32Cube 高效开发》配套，KW407A 板 28 Demo）：增量沉淀**
+  - hal-basics.md 新增 §9「进阶配方四则」：双 ADC 同步（REGSIMULT+DMAACCESSMODE_2+TIM3 TRGO，32 位打包解包）/ DAC 硬件三角波（HAL_DACEx_TriangleWaveGenerate，不占 CPU，与 DMA 波表 DDS 两路线对照）/ RTC BKP+Tamper（入侵自动清 BKP 的安全语义）/ WWDG 窗口看门狗（喂早喂晚都复位+EWI 提前唤醒中断，与 IWDG 本质区别）
+  - 其余 24 个 Demo 主题（PWM/USART IDLE/ADC DMA/SPI/EEPROM/SRAM/IWDG/低功耗）与既有 recipes 大面积重合，不重复沉淀
+- 计数：坑 86→88；知识层仍 30 篇（本轮全部增量并入既有文档，无新文件）
+
 ## v0.11.2 MultiButton 沉淀 + Awesome-Embedded 舍弃（不发版：仅代码上库，无 tag/Release）
 
 - 来源：用户（m05921）「参考这个，如果有用的，你可以沉淀；如果没用，你就舍弃」给两个 Downloads 仓库

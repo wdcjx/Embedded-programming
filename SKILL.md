@@ -126,7 +126,7 @@ depends: stm32f10x_rcc.c, stm32f10x_usart.c
 | `references/symptom-quickref.md` | 症状速查：死机/挂死/数据乱 → 根因反查表（纪律） |
 | `references/spl-peripheral-checklist.md` | 各外设初始化顺序清单（纪律） |
 | `references/isr-and-concurrency-rules.md` | ISR 模板、volatile/原子性/临界区规则（纪律） |
-| `references/known-pitfalls.md` | 已知坑清单 86 条：症状/原因/修法（纪律） |
+| `references/known-pitfalls.md` | 已知坑清单 88 条：症状/原因/修法（纪律） |
 | `templates/main.c` | 裸机 SPL 骨架（SysTick 节拍+非阻塞主循环+printf） |
 | `templates/main_rtos_spl.c` + `templates/FreeRTOSConfig.h` | SPL+FreeRTOS 任务骨架与内核配置模板 |
 | `templates/main_hal.c` | HAL 裸机骨架（CubeMX 对照+手写起点） |

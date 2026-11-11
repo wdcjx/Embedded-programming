@@ -354,6 +354,27 @@ IWDG_Enable();
 | ≤ 128K | `STM32F10X_MD` | startup_stm32f10x_md.s | **C8T6** |
 | ≤ 512K | `STM32F10X_HD` | startup_stm32f10x_hd.s | ZET6 / VET6 |
 
+### F10x 常见型号全参数表（2026-11 MCUQuickStart 芯片库，43 型号抽取）
+
+| 型号 | define | RAM KB | Flash KB | 启动文件 | Keil FlashDriver |
+|---|---|---|---|---|---|
+| STM32F103C8T6 | MD | 20 | 64 | md.s | STM32F10x_64 |
+| STM32F103CBT6 | MD | 20 | 128 | md.s | STM32F10x_128 |
+| STM32F103RBT6 | MD | 20 | 128 | md.s | STM32F10x_128 |
+| STM32F103VBT6 | MD | 20 | 128 | md.s | STM32F10x_128 |
+| STM32F103RCT6 | HD | 48 | 256 | hd.s | STM32F10x_256 |
+| STM32F103RET6 | HD | 64 | 512 | hd.s | STM32F10x_512 |
+| STM32F103VCT6 | HD | 48 | 256 | hd.s | STM32F10x_256 |
+| STM32F103VET6 | HD | 64 | 512 | hd.s | STM32F10x_512 |
+| STM32F103ZET6 | HD | 64 | 512 | hd.s | STM32F10x_512 |
+
+- RC/RD=48KB RAM 但 RE/ZE=64KB：同密度档内 RAM 也不同，抄工程前核对 `ram_kb`（链接脚本 IROM/IRAM 与 .sct 都要跟着改）。
+- F4 对照：`STM32F407VGT6` → define `STM32F40_41xxx`，192KB RAM / 1024KB Flash，启动 `startup_stm32f40_41xxx.s`；**fwlib 裁剪思路**——无 FMC/无显示的板子把 `stm32f4xx_fmc.c/dma2d/ltdc/sai` 从工程剔除（省编译时间，MCUQuickStart 按型号自动裁）。
+
+### GD32 兼容链（SPL 风格固件库，pin-compatible）
+
+GD32F10x/GD32F30x/GD32F4xx 固件库 API 命名与 SPL 同构（`gd32f10x_gpio.c` ↔ `stm32f10x_gpio.c`），时钟树宏 HXTAL 8/25MHz 二选一并修正 PLL 倍频。生成 GD32 代码：结构与 STM32 轨一致，头文件/前缀替换 + `SystemCoreClock` 更新。桌宠工程已实证 CH32F103 类兼容芯「同代码同 hex 零工程改动」（v0.9.8）；GD32 走固件库替换路线（比 CH32 更彻底，寄存器布局非 100% 兼容 ST）。
+
 工程必备：`system_stm32f10x.c`（含 72MHz 时钟配置，宏 `SYSCLK_FREQ_72MHz`）+ 上面启动文件 + 按需添加的标准库驱动：
 `stm32f10x_rcc.c`、`stm32f10x_gpio.c`、`misc.c`（NVIC 用）常备；`stm32f10x_usart.c`、`stm32f10x_tim.c`、`stm32f10x_adc.c`、`stm32f10x_i2c.c`、`stm32f10x_spi.c`、`stm32f10x_exti.c`、`stm32f10x_dma.c`、`stm32f10x_iwdg.c`… 按外设启用，并在 `stm32f10x_conf.h` 中放开对应 `#include`。
 
