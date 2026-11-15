@@ -2,6 +2,16 @@
 
 > 使用中持续完善。完成打 [x]，进行中打 [~]，未开始留 [ ]。
 
+## v0.11.5 HUB75D 点阵 WiFi 时钟沉淀（不发版：仅代码上库，无 tag/Release）
+
+- 来源：用户（m06232）@ led32x64_wifi_clock-main（F103C8T6+FreeRTOS+ESP8266，作者实测上板）。
+- [x] 读码全量：HUB75D 双实现（软件位拆版废弃+DMA-ODR 现役）/显示任务架构（模块即微服务+DISP 中央事件聚合+任务组 Suspend 息屏）/WiFi-GPS 双源校时（AT 表驱动+USERTIME 卸载+校后断电）/OTA 双分区（两阶段 magic 激活+jump 八步+YMODEM 回调）/日志三通道/农历查表/HTU21D 软 I2C osDelay 变体。
+- [x] 发现：readme 声称的 auto_build 构建系统与 ESP Web 配网固件均为空目录（文档与仓库不符，记入 bug 清单）。
+- [x] validator：29 用户文件 --density md 0 VIOLATION 0 WARNING（连续第二个零违规工程）；人工发现跨文件非 volatile 共享（g_rgbScan）为单文件盲区实例。
+- [x] 新建 references/hub75d-wifi-clock-hal.md（12 节）。
+- [x] 坑 89（废弃驱动文件引脚宏漂移，B2 写错与 OE 同脚）/90（CubeMX 死初始化，TIM4 配而不用）/91（跨文件 ISR 共享 extern 不带 volatile，静态分析原理性失明）；总 91 条。
+- [x] SKILL/README/ROADMAP 三索引同步（31 篇/91 坑）。
+
 ## v0.11.4 技能自更新指令（不发版：仅代码上库，无 tag/Release）
 
 - 来源：用户（m06203）「别人下载这个技能之后，输入更新指令，他的电脑上可以同步我的仓库更新」
