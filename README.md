@@ -178,6 +178,7 @@ embed/                                # 单一技能：快速生成 + 工程纪�
 ├── SKILL.md                          # 入口：模式路由、工作流、硬约束、自检清单
 ├── README.md                         # 本文件
 ├── LICENSE                           # MIT
+├── CHANGELOG.md                       # 版本摘要（frontmatter version 对齐，技能装载侧可读）
 ├── ROADMAP.md                        # 后续计划
 ├── CONTRIBUTING.md                   # 贡献指南（反馈渠道/沉淀规矩/validator 回归要求）
 ├── .github/ISSUE_TEMPLATE/           # Issue 模板（问题反馈/工程沉淀建议）
@@ -236,7 +237,11 @@ embed/                                # 单一技能：快速生成 + 工程纪�
     ├── bad_sample_rtos.c             # RTOS 违规自测样本
     ├── bad_sample_hal.c              # HAL 违规自测样本
     ├── project_conflict/             # 聚合样本：两文件抢 PA9（坑 76 场景），--dir 必报冲突
-    └── manifest_ok/                  # 聚合样本：引脚/向量无交集，--dir 应 PASS
+    ├── manifest_ok/                  # 聚合样本：引脚/向量无交集，--dir 应 PASS
+    ├── rule_snippets/                # 规则级单测：15 条规则每条一个最小触发文件
+    ├── run_rule_tests.py             # 规则级单测 runner（断言规则 ID，防规则静默失效）
+    ├── compile/                      # 编译 CI 支持文件（最小 stm32f10x_conf.h + build.sh）
+    └── evals/                        # 技能评测集：10 个标准任务书 + 期望（TASKS.md）
 ```
 
 </details>

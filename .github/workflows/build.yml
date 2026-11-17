@@ -1,0 +1,47 @@
+# 真实编译 CI：模板与示例必须过 arm-none-eabi-gcc 编译（此前只过 validator
+# 正则，从未被编译器碰过——外部审查清单第 1 条）。
+#
+# 依赖按 commit SHA 锁死（供应链）：
+# - SPL   = Abysmo/STM32_StdPeriphLib @ ff7527ad35b49e01801ca161656a956924fbb83e
+#           （STM32F10x_StdPeriph_Lib V3.6.0 官方最终版原样快照，2021 后未动）
+# - RTOS  = FreeRTOS/FreeRTOS-Kernel @ d7b40dbed508c305c2a32ccf3982045ec9ba8734
+#           （V10.5.1 tag object）
+
+name: compile
+
+on:
+  push:
+    paths: [templates/**, examples/**, tests/compile/**, .github/workflows/build.yml]
+  pull_request:
+    paths: [templates/**, examples/**, tests/compile/**, .github/workflows/build.yml]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: compile-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  arm-gcc:
+    if: github.repository == 'wdcjx/Embedded-programming'   # fork 不消耗 Actions 分钟
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+      - name: Install arm-none-eabi-gcc
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q gcc-arm-none-eabi
+          arm-none-eabi-gcc --version | head -1
+      - name: Fetch SPL V3.6.0 (pinned ff7527a)
+        run: |
+          git clone -q --no-checkout https://github.com/Abysmo/STM32_StdPeriphLib.git /tmp/spl
+          git -C /tmp/spl checkout -q ff7527ad35b49e01801ca161656a956924fbb83e
+      - name: Fetch FreeRTOS-Kernel V10.5.1 (pinned d7b40db)
+        run: |
+          git clone -q --no-checkout https://github.com/FreeRTOS/FreeRTOS-Kernel.git /tmp/freertos
+          git -C /tmp/freertos checkout -q d7b40dbed508c305c2a32ccf3982045ec9ba8734
+      - name: Compile templates and examples
+        run: |
+          chmod +x tests/compile/build.sh
+          SPL_DIR=/tmp/spl FREERTOS_DIR=/tmp/freertos tests/compile/build.sh

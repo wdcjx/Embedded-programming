@@ -122,6 +122,17 @@ for rel, verdict, exp_v, exp_w, keyword in AGG_BASELINE:
     check(f"validator 聚合: {rel} -> {verdict} V={exp_v} W={exp_w} 含「{keyword}」",
           ok, f"实际 {got_verdict} V={got_v} W={got_w}" if not ok else '')
 
+# ---- 规则级单测：15 条规则每条必须触发自己的 ID ----
+r = subprocess.run([sys.executable, os.path.join(ROOT, 'tests', 'run_rule_tests.py')],
+                   capture_output=True, text=True,
+                   encoding='utf-8', errors='replace')
+n_pass = len(re.findall(r'^\[PASS\]', r.stdout, re.M))
+detail = ''
+if r.returncode != 0:
+    lines = [ln for ln in (r.stdout + r.stderr).splitlines() if 'FAIL' in ln]
+    detail = lines[-1] if lines else (r.stderr.strip() or '见输出')
+check(f"规则级单测: run_rule_tests 15 条 ({n_pass}/15)", r.returncode == 0, detail)
+
 print()
 if failures:
     print(f"CI 结果: FAIL（{len(failures)} 项未过）")

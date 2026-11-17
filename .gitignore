@@ -8,3 +8,4 @@ Thumbs.db
 *.tmp
 ~$*
 CON
+__pycache__/

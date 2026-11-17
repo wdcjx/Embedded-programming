@@ -19,6 +19,8 @@ validate_generated.py — STM32 标准库（SPL）生成代码工程纪律检查
 """
 
 import argparse
+import json
+import re as _re_mod  # noqa: F401 (rule table uses re)
 import re
 import sys
 from pathlib import Path
@@ -235,11 +237,43 @@ def is_isr_context(name, params=""):
     return is_isr(name, params) or name.endswith("Callback")
 
 
-def analyze(path, text, vectors, findings, irq_owner):
+VALIDATOR_VERSION = "1.1.0"
+
+# ---------- 规则 ID 映射（消息内容 -> 稳定 ID） ----------
+# ID 供 Agent 程序化消费（--format json）与规则级单测（tests/rule_snippets/）断言。
+# 文案改动导致映射落空时返回 "R0"，规则级单测会立刻抓住（防"规则静默失效"）。
+RULE_TABLE = [
+    (r"未知中断/系统处理函数名", "R1"),
+    (r"全工程只能有一份", "R2"),
+    (r"访问了非 volatile 全局变量", "R3"),
+    (r"无 FromISR 版本|必须改用 '", "R4"),
+    (r"中断内禁止延时/printf/忙等", "R5"),
+    (r"内存在 while 轮询", "R6"),
+    (r"硬件等待循环未见超时", "R7"),
+    (r"使用动态内存", "R8"),
+    (r"NVIC_PriorityGroupConfig", "R9"),
+    (r"时钟|AFIO", "R10"),
+    (r"printf 但未见", "R11"),
+    (r"SysTick_Config|PriorityGroup_4|TimeBase", "R12"),
+    (r"无该端口|不存在该端口", "R13"),
+    (r"引脚冲突", "R14"),
+    (r"中断向量重复", "R15"),
+    (r"文件不存在|无法读取", "R99"),
+]
+
+
+def rule_of(msg):
+    for pat, rid in RULE_TABLE:
+        if _re_mod.search(pat, msg):
+            return rid
+    return "R0"
+
+
+def analyze(path, text, vectors, findings, irq_owner, density="md", raw_text=None):
     fname = path.name
 
     def add(line, level, msg):
-        findings.append((fname, line, level, msg))
+        findings.append((fname, line, level, rule_of(msg), msg))
 
     # ---- 函数与全局变量收集 ----
     funcs = []
@@ -275,7 +309,9 @@ def analyze(path, text, vectors, findings, irq_owner):
         )
 
     isr_spans = [(f["open"], f["close"]) for f in funcs if is_isr_context(f["name"], f["params"])]
-    rtos_used = bool(RTOS_DETECT_RE.search(text))
+    # RTOS/HAL 检测用原始文本：neutralize 会抹掉字符串内容（include 文件名），
+    # "FreeRTOS.h" 等线索在 neutralize 后失配（规则级单测 R4 抓出的真实缺陷）
+    rtos_used = bool(RTOS_DETECT_RE.search(raw_text if raw_text is not None else text))
 
     # ---- 1. 中断函数名合法性 + 全工程唯一 ----
     for f in funcs:
@@ -429,6 +465,21 @@ def analyze(path, text, vectors, findings, irq_owner):
         add(1, WARN, "使用了 printf 但未见 fputc/_write/__io_putchar 重定向"
                      "（Keil 需勾 MicroLIB）")
 
+    # ---- 13. 端口存在性（封装决定端口有没有；编译能过但链接 undefined） ----
+    # SPL 里端口宏与引脚号分离书写（GPIOD / GPIO_Pin_13），配对启发式误报率高，
+    # 这里只查端口级引用：md（C8T6 类 48 脚）无 GPIOD/E，hd（64 脚常见）无 GPIOE。
+    port_hits = set(_re_mod.findall(r"\bGPIO([DEF])\b|RCC_APB2Periph_GPIO([DEF])\b", text))
+    ports = {a or b for a, b in port_hits}
+    if density == "md" and ports & {"D", "E"}:
+        bad = "/".join(sorted(ports & {"D", "E"}))
+        add(1, VIOL,
+            f"检测到 GPIO{bad} 端口引用：当前 --density md（C8T6 类 48 脚封装）"
+            "不存在该端口，链接期 undefined symbol；生成前必须对照封装引脚表换端口")
+    elif density == "hd" and ports & {"E"}:
+        add(1, VIOL,
+            "检测到 GPIOE 端口引用：当前 --density hd（64 脚封装常见）通常不存在该端口，"
+            "请核对实际封装（100 脚 HD 才有 GPIOE），链接期 undefined symbol")
+
     # ---- 8. RTOS（SPL+FreeRTOS）专项 ----
     if rtos_used:
         for m in re.finditer(r"\bSysTick_Config\s*\(", text):
@@ -440,7 +491,7 @@ def analyze(path, text, vectors, findings, irq_owner):
             add(line_of(text, gm.start()), WARN,
                 "FreeRTOS 工程应使用 NVIC_PriorityGroup_4（全 4 位抢占）："
                 "configMAX_SYSCALL_INTERRUPT_PRIORITY 的优先级语义依赖全抢占分组")
-        if HAL_DETECT_RE.search(text):
+        if HAL_DETECT_RE.search(raw_text if raw_text is not None else text):
             add(1, WARN,
                 "RTOS+HAL 组合：请确认 CubeMX 的 TimeBase Source 已改为非 SysTick 的 TIM"
                 "（HAL 时基占用 SysTick 会与内核冲突）；任务延时用 osDelay/vTaskDelay，"
@@ -504,14 +555,14 @@ def cross_check(manifests, findings):
     for pin in sorted(pin_owner):
         owners = pin_owner[pin]
         if len(owners) > 1:
-            findings.append(("PROJECT(聚合)", 0, VIOL,
+            findings.append(("PROJECT(聚合)", 0, VIOL, "R14",
                              f"引脚冲突: {pin} 被多个文件声明占用 -> "
                              + ", ".join(sorted(owners))
                              + "（复用引脚必须只在一个模块中初始化，其余模块仅引用）"))
     for v in sorted(vec_owner):
         owners = vec_owner[v]
         if len(owners) > 1:
-            findings.append(("PROJECT(聚合)", 0, VIOL,
+            findings.append(("PROJECT(聚合)", 0, VIOL, "R15",
                              f"中断向量重复: {v} 在多个文件声明 -> "
                              + ", ".join(sorted(owners))
                              + "（一个向量只能有一个实现文件）"))
@@ -524,6 +575,8 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description="STM32 SPL 生成代码工程纪律检查（启发式）")
     ap.add_argument("files", nargs="*", help="要检查的 .c 文件（多文件工程请一起传入）")
     ap.add_argument("--dir", help="递归检查该目录下所有 .c 文件")
+    ap.add_argument("--format", choices=["text", "json"], default="text",
+                    help="text=人读（默认）；json=机器读（带 validator 版本与规则 ID）")
     ap.add_argument("--density", choices=["md", "hd", "xl", "f4"], default="md",
                     help="向量表域：F103 密度 md/hd/xl，或 F4 家族 f4（TIM1_UP_TIM10/DMA Stream 等命名），默认 md（C8T6 等）")
     args = ap.parse_args(argv)
@@ -553,15 +606,16 @@ def main(argv=None):
             skipped += 1
             continue
         if not p.is_file():
-            findings.append((str(p), 0, WARN, "文件不存在，已跳过"))
+            findings.append((str(p), 0, WARN, "R99", "文件不存在，已跳过"))
             continue
         try:
             raw = p.read_text(encoding="utf-8", errors="replace")
         except OSError as exc:
-            findings.append((str(p), 0, WARN, f"无法读取：{exc}"))
+            findings.append((str(p), 0, WARN, "R99", f"无法读取：{exc}"))
             continue
         checked += 1
-        analyze(p, neutralize(raw), vectors, findings, irq_owner)
+        analyze(p, neutralize(raw), vectors, findings, irq_owner,
+                density=args.density, raw_text=raw)
         mf = parse_manifest(raw)
         if mf:
             mf_name = mf.get("module") or p.name
@@ -569,15 +623,31 @@ def main(argv=None):
 
     cross_check(manifests, findings)
 
-    by_file = {}
-    for f, line, level, msg in findings:
-        by_file.setdefault(f, []).append((line, level, msg))
-    for f in sorted(by_file):
-        print(f"[{f}]")
-        for line, level, msg in sorted(by_file[f]):
-            print(f"  行{line:<5} [{level}] {msg}")
     n_v = sum(1 for x in findings if x[2] == VIOL)
     n_w = sum(1 for x in findings if x[2] == WARN)
+    if args.format == "json":
+        print(json.dumps({
+            "validator_version": VALIDATOR_VERSION,
+            "density": args.density,
+            "files_checked": checked,
+            "files_skipped": skipped,
+            "violations": n_v,
+            "warnings": n_w,
+            "result": "FAIL" if n_v else ("PASS" if checked else "NO_FILES"),
+            "manifests": len(manifests),
+            "findings": [
+                {"file": f, "line": line, "level": level.strip(), "rule": rule, "message": msg}
+                for f, line, level, rule, msg in findings
+            ],
+        }, ensure_ascii=False, indent=2))
+        return 1 if n_v else (2 if checked == 0 else 0)
+    by_file = {}
+    for f, line, level, rule, msg in findings:
+        by_file.setdefault(f, []).append((line, level, rule, msg))
+    for f in sorted(by_file):
+        print(f"[{f}]")
+        for line, level, rule, msg in sorted(by_file[f]):
+            print(f"  行{line:<5} [{level}][{rule}] {msg}")
     print(f"-- 检查文件: {checked}  违规(VIOLATION): {n_v}  警告(WARNING): {n_w} --")
     if manifests:
         print(f"-- EMBED MANIFEST: {len(manifests)}/{checked} 个文件携带声明块，"

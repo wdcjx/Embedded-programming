@@ -2,6 +2,21 @@
 
 > 使用中持续完善。完成打 [x]，进行中打 [~]，未开始留 [ ]。
 
+## v0.11.7 外部审查清单·工程化补强（不发版：仅代码上库，无 tag/Release）
+
+- 来源：用户转发的第二轮审查建议清单（m06429，高/中/低三梯队 + 克制清单）。
+- [x] **真实编译 CI（高）**：.github/workflows/build.yml——gcc-arm-none-eabi 真实编译 SPL 双轨模板+示例（-c 编译验证，此前从未被编译器碰过）；SPL 库源=Abysmo/STM32_StdPeriph_Lib V3.6.0 官方快照锁 ff7527a、FreeRTOS-Kernel V10.5.1 锁 d7b40db（均 commit SHA 钉死）；tests/compile/ 提供最小 stm32f10x_conf.h+build.sh；HAL 轨暂不纳入（CubeF1 仓库过大，validator 基线继续覆盖——诚实边界）。
+- [x] **GPIO 端口存在性检查（高）**：validator 新规则 R13——md（C8T6 类 48 脚）引用 GPIOD/E 即 VIOLATION（链接期 undefined symbol）、hd 报 GPIOE；只查端口级（SPL 端口/引脚分离书写，配对启发式误报率高，注释说明）。
+- [x] **规则级单测（中）**：tests/rule_snippets/ 15 条规则每条一个最小触发文件 + tests/run_rule_tests.py 断言规则 ID 而非计数（防"规则静默失效但基线全绿"）；已纳入 ci_check 第 13 项。
+- [x] **规则 ID + JSON（中）**：validator 1.1.0——R1~R15/R99 稳定编号（消息内容集中映射层，R0=映射失配哨兵）；--format json 机器读输出（validator_version/density/findings[].rule）供 Agent 程序化"生成→校验→修复"。
+- [x] 单测首跑即抓到 validator 真实缺陷：neutralize 抹字符串内容后 #include "FreeRTOS.h" 线索失配→RTOS/HAL 检测改用 raw text（规则级单测价值的当天证明）。
+- [x] **evals 评测集（中）**：tests/evals/TASKS.md——10 个标准任务书+期望清单+评分法（交付/纪律/诚实边界 4+4+2），覆盖四轨+坑对应场景。
+- [x] **version + CHANGELOG（低）**：SKILL.md frontmatter 加 version: 0.11.7；新建 CHANGELOG.md（技能装载侧可读的版本摘要，与 tag 对齐）。
+- [x] **workflow 供应链（低）**：三个 workflow 的 actions 全部按 commit SHA 钉住（checkout v4.2.2=11bd719/setup-python v5.3.0=0b93645）。
+- [x] **删 Untitled.py（低）**：用户确认取代 v0.1「保留不动」指示。
+- [x] 克制清单遵守：未扩 F7/H7/G4、未引 PyYAML（validator 仍纯标准库）、未做在线服务。
+- 回归：CI 13 项 PASS；规则单测 15/15。
+
 ## v0.11.6 外部审查修复（不发版：仅代码上库，无 tag/Release）
 
 - 来源：用户转发的全仓代码审查报告（m06378）——2 个 Python 脚本/4 个 C 模板/1 个示例/7 个测试样例逐行读过+CI 实跑。
