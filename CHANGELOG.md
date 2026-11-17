@@ -1,5 +1,15 @@
 # CHANGELOG — embed 技能
 
+## v0.12.0（2026-11-17）
+
+- **validator 1.1.0**：规则 ID R1~R15/R99 集中映射；`--format json` 输出（CI/工具可解析）；新规则 R13 GPIO 端口存在性（按芯片密度）；修复 neutralize 抹字符串导致 RTOS 检测失明的真实缺陷。
+- **规则级单测**：`tests/rule_snippets/` 15 文件 + `run_rule_tests.py`（断言规则 ID 而非计数，防规则静默失效），首跑即抓出 validator 真实缺陷。
+- **真实编译 CI**（compile workflow）：arm-none-eabi-gcc 真编模板与示例（SPL V3.6.0 锁 Abysmo 镜像 ff7527a、FreeRTOS-Kernel 10.5.1 锁 d7b40db，全部 commit SHA 钉死）；模板第一次被真编译器验证。
+- **evals 评测集**：`tests/evals/TASKS.md` 10 个标准任务书+评分。
+- SKILL.md frontmatter `version:`；actions 三 workflow 全钉 SHA；删除 Untitled.py（用户指示）。
+- 技能自更新指令（v0.11.4）：`npx skills update embed`。
+- 外部审查修复（v0.11.6）：模板初始化竞态 NULL 守卫、C90 声明位置；坑 92。
+
 面向技能使用者的版本摘要（技能装载侧读不到 git tag，frontmatter `version:` 与本文件对齐）。
 完整演进记录见 [ROADMAP.md](ROADMAP.md)。
 

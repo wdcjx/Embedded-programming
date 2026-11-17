@@ -27,6 +27,12 @@
 - [x] 回归：CI 12 项 PASS；三文件 validator 分跑全 PASS（合跑触发跨文件向量重复=聚合功能正确工作）。
 - [x] 计数同步：SKILL/README 4 处 91→92。
 
+## v0.12.0 第四个公开版本（发版）
+
+- v0.11.6 + v0.11.7 全部内容的发布快照：validator 1.1.0（规则 ID/JSON/R13）、规则级单测 15 条、真实编译 CI（arm-gcc+SPL/FreeRTOS 锁 SHA）、evals 评测集、CHANGELOG、版本自更新指令。
+- [x] README 四道 CI 防线叙事+英文段同步。
+- [x] tag v0.12.0 + GitHub Release + About 简介同步。
+
 ## v0.11.5 HUB75D 点阵 WiFi 时钟沉淀（不发版：仅代码上库，无 tag/Release）
 
 - 来源：用户（m06232）@ led32x64_wifi_clock-main（F103C8T6+FreeRTOS+ESP8266，作者实测上板）。
