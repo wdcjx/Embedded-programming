@@ -125,8 +125,10 @@ void EXTI0_IRQHandler(void)
     BaseType_t woken = pdFALSE;
     if (EXTI_GetITStatus(EXTI_Line0) != RESET) {
         EXTI_ClearITPendingBit(EXTI_Line0);
-        vTaskNotifyGiveFromISR(s_key_task, &woken);        /* 只能用 FromISR API */
-        portEND_SWITCHING_ISR(woken);                      /* 立即切换到被唤醒任务 */
+        if (s_key_task != NULL) {                          /* 竞态守卫：key_init 已使能 EXTI，任务句柄在建任务前是 NULL */
+            vTaskNotifyGiveFromISR(s_key_task, &woken);    /* 只能用 FromISR API */
+            portEND_SWITCHING_ISR(woken);                  /* 立即切换到被唤醒任务 */
+        }
     }
 }
 

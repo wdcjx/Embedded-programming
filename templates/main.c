@@ -72,8 +72,8 @@ int main(void)
     usart1_init();
 
     /* USER CODE BEGIN 2 */
+    uint32_t blink_t0 = millis();                          /* C90：声明放块首（AC5 兼容） */
     printf("\r\n== firmware v0.1, build " __DATE__ " " __TIME__ " ==\r\n");
-    uint32_t blink_t0 = millis();
     /* USER CODE END 2 */
 
     while (1)

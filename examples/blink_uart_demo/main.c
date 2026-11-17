@@ -43,13 +43,13 @@ int main(void)
     usart1_init();
 
     /* USER CODE BEGIN 2 */
-    printf("\r\n== blink_uart v" VERSION ", build " __DATE__ " " __TIME__ " ==\r\n");
-    printf("MCU: STM32F103C8T6 @72MHz, HSE=8MHz\r\n");
-
-    uint32_t blink_t0 = millis();
+    uint32_t blink_t0 = millis();              /* C90：声明放块首（AC5 兼容） */
     uint32_t log_t0   = millis();
     uint32_t uptime   = 0;
     int      led_on   = 0;
+
+    printf("\r\n== blink_uart v" VERSION ", build " __DATE__ " " __TIME__ " ==\r\n");
+    printf("MCU: STM32F103C8T6 @72MHz, HSE=8MHz\r\n");
     /* USER CODE END 2 */
 
     while (1)
@@ -125,8 +125,8 @@ static void usart1_init(void)
 /* USER CODE BEGIN printf（Keil + MicroLIB；GCC 工程改用 _write） */
 int fputc(int ch, FILE *f)
 {
-    (void)f;
     uint32_t t = 20000;                           /* 超时保护：约 >2 个字节时间，足够 TXE 置位 */
+    (void)f;
     while (USART_GetFlagStatus(USART1, USART_FLAG_TXE) == RESET) {
         if (--t == 0) {
             return ch;                            /* 超时丢字符，不卡死主流程 */

@@ -2,6 +2,16 @@
 
 > 使用中持续完善。完成打 [x]，进行中打 [~]，未开始留 [ ]。
 
+## v0.11.6 外部审查修复（不发版：仅代码上库，无 tag/Release）
+
+- 来源：用户转发的全仓代码审查报告（m06378）——2 个 Python 脚本/4 个 C 模板/1 个示例/7 个测试样例逐行读过+CI 实跑。
+- [x] 真 bug 修复：templates/main_rtos_spl.c 初始化竞态——key_init() 使能 EXTI0 早于 xTaskCreate 赋句柄，窗口期按键 vTaskNotifyGiveFromISR(NULL) 触发 configASSERT 死循环；ISR 加 NULL 守卫（把竞态变成显式教学点）。
+- [x] C90 兼容：templates/main.c 与 examples/blink_uart_demo/main.c 语句后声明挪块首（AC5 默认 C90 报 error #268），3 处。
+- [x] 仓库卫生：CON（Windows 保留名，git 凭据误存产物）用 python 设备路径 \\.\C:\... 删除+.gitignore 加行；Untitled.py 保留（用户 v0.1 指示）。
+- [x] 坑 92（初始化竞态：外设 init 先于资源就绪，本技能模板自身被审查抓出的 bug，诚实记录）；总 92 条。
+- [x] 回归：CI 12 项 PASS；三文件 validator 分跑全 PASS（合跑触发跨文件向量重复=聚合功能正确工作）。
+- [x] 计数同步：SKILL/README 4 处 91→92。
+
 ## v0.11.5 HUB75D 点阵 WiFi 时钟沉淀（不发版：仅代码上库，无 tag/Release）
 
 - 来源：用户（m06232）@ led32x64_wifi_clock-main（F103C8T6+FreeRTOS+ESP8266，作者实测上板）。
