@@ -12,7 +12,8 @@ CFLAGS="-mcpu=cortex-m3 -mthumb -std=gnu99 -Wall -DSTM32F10X_MD -DUSE_STDPERIPH_
 
 SPL_ROOT="$SPL_DIR"/STM32F10x_StdPeriph_Lib_V3.6.0   # Abysmo 镜像保留官方整包目录名（锁 ff7527a 的固定布局）
 SPL_INC="$SPL_ROOT/Libraries/STM32F10x_StdPeriph_Driver/inc"
-CMSIS_INC="$SPL_ROOT/Libraries/CMSIS/CM3/CoreSupport"
+CMSIS_INC="$SPL_ROOT/Libraries/CMSIS/CM3/CoreSupport"                # core_cm3.h
+DEVICE_INC="$SPL_ROOT/Libraries/CMSIS/CM3/DeviceSupport/ST/STM32F10x"  # stm32f10x.h / system_stm32f10x.h
 CONF_INC="$(cd "$(dirname "$0")" && pwd)"   # stm32f10x_conf.h 所在
 
 fail=0
@@ -26,12 +27,12 @@ build() {  # build <label> <file> <extra -I ...>
 }
 
 # SPL 裸机模板 + 示例
-build "spl-bare template"  templates/main.c                 -I"$SPL_INC" -I"$CMSIS_INC" -I"$CONF_INC"
-build "spl-bare example"   examples/blink_uart_demo/main.c  -I"$SPL_INC" -I"$CMSIS_INC" -I"$CONF_INC"
+build "spl-bare template"  templates/main.c                 -I"$SPL_INC" -I"$CMSIS_INC" -I"$DEVICE_INC" -I"$CONF_INC"
+build "spl-bare example"   examples/blink_uart_demo/main.c  -I"$SPL_INC" -I"$CMSIS_INC" -I"$DEVICE_INC" -I"$CONF_INC"
 
 # SPL + FreeRTOS 模板（FreeRTOSConfig.h 在 templates/）
 build "spl-rtos template"  templates/main_rtos_spl.c        \
-  -I"$SPL_INC" -I"$CMSIS_INC" -I"$CONF_INC" \
+  -I"$SPL_INC" -I"$CMSIS_INC" -I"$DEVICE_INC" -I"$CONF_INC" \
   -I"$FREERTOS_DIR/include" -I"$FREERTOS_DIR/portable/GCC/ARM_CM3" -Itemplates
 
 # HAL 模板（main_hal.c）需要 STM32CubeF1 全套 HAL 头，仓库不 vendored、
