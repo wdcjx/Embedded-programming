@@ -10,8 +10,9 @@ set -euo pipefail
 CC=arm-none-eabi-gcc
 CFLAGS="-mcpu=cortex-m3 -mthumb -std=gnu99 -Wall -DSTM32F10X_MD -DUSE_STDPERIPH_DRIVER"
 
-SPL_INC="$SPL_DIR/Libraries/STM32F10x_StdPeriph_Driver/inc"
-CMSIS_INC="$SPL_DIR/Libraries/CMSIS/CM3/CoreSupport"
+SPL_ROOT="$SPL_DIR"/STM32F10x_StdPeriph_Lib_V3.6.0   # Abysmo 镜像保留官方整包目录名（锁 ff7527a 的固定布局）
+SPL_INC="$SPL_ROOT/Libraries/STM32F10x_StdPeriph_Driver/inc"
+CMSIS_INC="$SPL_ROOT/Libraries/CMSIS/CM3/CoreSupport"
 CONF_INC="$(cd "$(dirname "$0")" && pwd)"   # stm32f10x_conf.h 所在
 
 fail=0
