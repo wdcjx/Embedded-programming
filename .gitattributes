@@ -16,3 +16,4 @@
 *.hex binary
 *.bin binary
 *.zip binary
+*.sh text eol=lf
