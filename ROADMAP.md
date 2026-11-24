@@ -27,6 +27,15 @@
 - [x] 回归：CI 12 项 PASS；三文件 validator 分跑全 PASS（合跑触发跨文件向量重复=聚合功能正确工作）。
 - [x] 计数同步：SKILL/README 4 处 91→92。
 
+## v0.12.1 智能农业双子工程沉淀（不发版：仅代码上库，无 tag/Release）
+
+- 来源：用户（m06663）@ STM32-G + STM32_MAKE（同模板两节点：监测+执行，作者实测上板）。
+- [x] 读码全量：阿里云 IoT MQTT AT 接入四步/ESP-AT MQTTCLIENTID 三元组 `\,` 转义/coreJSON 零拷贝解析（存-断-用-复）/TIM2 10ms 时间片/继电器低有效+舵机整数映射/DHT11 retry 超时/5000 帧软复位自愈。
+- [x] validator 38 文件 4 FAIL 全真实（两份 time_handle ISR 标志非 volatile×14+RxCplt 8 变量+dht11 R10 生成层边界）；零误报。
+- [x] 新建 references/smart-agri-aliyun-mqtt-hal.md（12 节）。
+- [x] 坑 93（驱动越权调 MX_xxx_Init）/94（Receive_IT 重挂进 switch 每个 case，漏 case 串口断流）；总 94 条。
+- [x] SKILL/README/ROADMAP 三索引同步（32 篇/94 坑）。
+
 ## v0.12.0 第四个公开版本（发版）
 
 - v0.11.6 + v0.11.7 全部内容的发布快照：validator 1.1.0（规则 ID/JSON/R13）、规则级单测 15 条、真实编译 CI（arm-gcc+SPL/FreeRTOS 锁 SHA）、evals 评测集、CHANGELOG、版本自更新指令。

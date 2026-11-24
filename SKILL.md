@@ -125,10 +125,11 @@ depends: stm32f10x_rcc.c, stm32f10x_usart.c
 | `references/bms-bq769x0-hal.md` | **BMS/AFE 首见**：BQ769x0 驱动+依赖注入三通道+36 用例测试+双模式入口 |
 | `references/portable-lib-design.md` | **写可复用单文件库时读**：事件回调/位域压缩/锁外回调/mock 单测（MultiButton 全解） |
 | `references/hub75d-wifi-clock-hal.md` | **HUB75D 点阵/ESP8266 校时/双分区 OTA 时读**：DMA-ODR 显示/AT 表驱动/两阶段 magic/jump 八步 |
+| `references/smart-agri-aliyun-mqtt-hal.md` | **阿里云 IoT/ESP-AT MQTT/coreJSON/继电器执行器时读**：MQTTPUB 转义/零拷贝解析/时间片 |
 | `references/symptom-quickref.md` | 症状速查：死机/挂死/数据乱 → 根因反查表（纪律） |
 | `references/spl-peripheral-checklist.md` | 各外设初始化顺序清单（纪律） |
 | `references/isr-and-concurrency-rules.md` | ISR 模板、volatile/原子性/临界区规则（纪律） |
-| `references/known-pitfalls.md` | 已知坑清单 92 条：症状/原因/修法（纪律） |
+| `references/known-pitfalls.md` | 已知坑清单 94 条：症状/原因/修法（纪律） |
 | `templates/main.c` | 裸机 SPL 骨架（SysTick 节拍+非阻塞主循环+printf） |
 | `templates/main_rtos_spl.c` + `templates/FreeRTOSConfig.h` | SPL+FreeRTOS 任务骨架与内核配置模板 |
 | `templates/main_hal.c` | HAL 裸机骨架（CubeMX 对照+手写起点） |
